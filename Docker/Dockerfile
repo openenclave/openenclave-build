@@ -16,7 +16,7 @@ ADD ubuntu-base-18.04.2-base-amd64.tar.gz  /
 
 RUN DEBIAN_FRONTEND=noninteractive apt update
 RUN DEBIAN_FRONTEND=noninteractive apt -y dist-upgrade
-RUN DEBIAN_FRONTEND=noninteractive apt-get -y install musl musl-dev ninja-build python3 xz-utils libxml2 libgcc-7-dev clang-7 make
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y install musl musl-dev ninja-build python3 xz-utils libxml2 libgcc-7-dev clang-7 make git
 
 
 # Now cmake. 
@@ -104,13 +104,16 @@ RUN /bin/bash -c "\
     make install ; \
     popd ; \
     "
+RUN git clone https://github.com/ninja-build/ninja.git
+RUN /bin/bash -c "pushd . ; cd ninja; git checkout release ; popd"
 
-WORKDIR /build
 RUN bash -c 'chmod a+x /tmp/build_toolchain.sh'
 RUN bash -c 'chmod a+x /tmp/install_toolchain.sh'
 RUN bash -c 'chmod a+x /tmp/check_toolchain.sh'
 #RUN bash -c '/tmp/build_install_toolchain.sh'
 
+RUN bash -c "git clone https://github.com/ocaml/ocaml.git"
+RUN bash -c "git clone https://github.com/python/cpython.git"
 
 CMD ["/bin/bash"]
 
