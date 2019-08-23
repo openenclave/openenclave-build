@@ -39,6 +39,11 @@ export CXXFLAGS
 #
 cd /src
 pushd .
+# first build python
+cd cpython
+./configure
+make
+
 cd ninja
 ./bootstrap.py
 ninja
@@ -57,5 +62,5 @@ make install
 make clean
 ./configure 
 make world.opt
-# Check sums
 
+# Check sums

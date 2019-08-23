@@ -9,6 +9,6 @@ for i in *
 do
    pushd .
    cd $i
-   ninja install
+   make install
    popd
 done
