@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -x
 # Check the sums of the new toolchain against the old one. We do this to ensure that
 # the sources reflect the code and vice versa.  In order to be undetectably hacked we
 # would have to have 2 corrupted inputs rather than one.
@@ -23,3 +24,4 @@ do
    done
    popd
 done
+set +x
