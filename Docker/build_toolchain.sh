@@ -9,64 +9,76 @@ function build_install_toolchain() {
     cd ${CMAKE_SRC_DIR}
     rm CMakeCache.txt
     ./bootstrap
-    make
+    make -j 8
     make install
     popd
     pushd .
     mkdir -p ${CMAKE_BUILD_DIR}
-    cd ${CMAKE_BUILD_DIR}
+    cd  ${CMAKE_BUILD_DIR}
     rm -rf ./*
     cmake -G "Unix Makefiles" ${CMAKE_SRC_DIR}
-    make
+    make -j 8
+    make install
+    popd
     
+    pushd .
     # llvm tools
     mkdir -p ${LLVM_BUILD_DIR}
     cd ${LLVM_BUILD_DIR}
     rm -rf ./*
     cmake -G "Unix Makefiles" -DLLVM_TARGETS_TO_BUILD="X86"  ${CMAKE_FLAGS}  ${LLVM_SRC_DIR}
-    make
+    make -j 8
     make install
+    popd
     
     # llvm linker
+    pushd .
     mkdir -p ${LLD_BUILD_DIR}
     cd ${LLD_BUILD_DIR}
     rm -rf ./*
     cmake -G "Unix Makefiles" ${CMAKE_FLAGS}  ${LLD_SRC_DIR}
-    make
+    make -j 8
     make install
+    popd
     
     # clang compiler
+    pushd .
     mkdir -p ${CLANG_BUILD_DIR}
     cd ${CLANG_BUILD_DIR}
     rm -rf ./*
     cmake -G "Unix Makefiles" -DLLVM_CXX_STD="c++17" ${CMAKE_FLAGS}  ${CLANG_SRC_DIR}
-    make
+    make -j 8
     make install
+    popd
     
     # clang runtime
+    pushd .
     mkdir -p /build/compiler-rt-7.1.0.src
     cd /build/compiler-rt-7.1.0.src
     rm -rf ./*
     cmake -G "Unix Makefiles"  -DLLVM_CXX_STD="c++17"  ${CMAKE_FLAGS} /src/compiler-rt-7.1.0.src 
-    make
+    make -j 8
     make install
+    popd
     
     # libc++
+    pushd .
     mkdir -p /build/libcxx-7.1.0.src
     cd /build/libcxx-7.1.0.src
     rm -rf ./*
     cmake -G "Unix Makefiles"   -DLLVM_CXX_STD="c++17"  ${CMAKE_FLAGS} /src/libcxx-7.1.0.src
-    make
+    make -j 8
     make install
+    popd
     
     # libunwind
+    pushd .
     mkdir -p /build/libunwind-7.1.0.src
     cd /build/libunwind-7.1.0.src
     rm -rf ./*
     cmake -G "Unix Makefiles"  -DLLVM_CXX_STD="c++17" ${CMAKE_FLAGS} /src/libunwind-7.1.0.src
-    make
+    make -j 8
     make install
-    
     popd
 }
 
@@ -104,7 +116,9 @@ cd cpython
 ./configure --enable-optimizations
 make
 make install
+popd
 
+pushd .
 cd ninja
 ./bootstrap.py
 ninja
@@ -123,6 +137,7 @@ make install
 make clean
 ./configure 
 make world.opt
+popd
 }
 
 
@@ -136,6 +151,7 @@ function build_check_toolchain() {
     cmake -G "Unix Makefiles" -DLLVM_TARGETS_TO_BUILD="X86"  ${CMAKE_FLAGS}  ${LLVM_SRC_DIR}
     make
    # CHECK make install
+    
     
     # llvm linker
     mkdir -p ${LLD_BUILD_DIR}
@@ -212,7 +228,7 @@ export CLANG_BUILD_DIR
 LLVM_TARGET_ARCH="host"
 export LLVM_TARGET_ARCH
 
-#build_install_toolchain
+build_install_toolchain
 
 # We built the toolchain with the default installed tools. We do not trust this toolchain
 # and it will not reproduce if it was built with gcc, which embeds time and data stamps etc.
@@ -227,7 +243,7 @@ then
     CFLAGS="-fPIC -fuse-ld=/usr/local/bin/ld.lld"
     CXXFLAGS="-std=c++17 -stdlib=libstdc++ -fPIC -fuse-ld=/usr/local/bin/ld.lld "
 
-    CMAKE_FLAGS=" -DLLVM_TARGET_ARCH="host" -DLLVM_ENABLE_LLD=1 "
+    CMAKE_FLAGS=" -DLLVM_TARGET_ARCH="host" -DLLVM_ENABLE_LLD=1 -DCMAKE_BUILD_TYPE=Release"
     export CC
     export CXX
     export LD
