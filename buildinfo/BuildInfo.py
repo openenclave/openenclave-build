@@ -67,7 +67,7 @@ class BuildInfo:
         ret += ("Binary-Only-Changes: "+str(self.changes_bin_only)+"\n")
         ret += ("Checksums-Sha256:\n")
         for checksum in self.checksums:
-            ret += (" "+checksum+"\n")
+            ret += (" "+str(checksum)+"\n")
         #
         ret += ("Build-Path:"+self.build_path+"\n")
         ret += ("Build-Environment:\n")

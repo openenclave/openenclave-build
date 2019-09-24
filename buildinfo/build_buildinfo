@@ -1,0 +1,5 @@
+#!/usr/local/bin/python3.9
+import write_buildinfo
+
+if __name__ == "__main__":
+    write_buildinfo.__init__("/build/secure-build.buildinfo", "/src", "/build" )

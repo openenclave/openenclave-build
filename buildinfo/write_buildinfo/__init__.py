@@ -3,7 +3,30 @@ import hashlib
 import os
 import platform
 
+import pdb
+
 info = BuildInfo.BuildInfo()
+
+
+#
+# Returns all of the files in a directory tree that are executable files that are not an intermediate build product
+#
+def getfileslist(path):
+    files = list()
+    direntries = os.scandir(path)
+    for entry in direntries:
+        filepath = path+'/'+entry.name
+        if entry.is_dir() and not entry.name.startswith('.'):
+            newfiles = getfileslist(filepath)
+            if len(newfiles) > 0:
+                files.extend(newfiles)
+        elif entry.is_file() and not entry.name.endswith('.bin') and not entry.name.startswith('a.out'):
+            if os.access(filepath, os.X_OK):
+                print( "filepath = "+filepath)
+                files.append(filepath)
+    return files
+
+
 
 def get_deb_packages():
     rslt = os.popen('dpkg -l').read()
@@ -22,9 +45,14 @@ def checksum_file(filename):
 
 def __init__(filename, src, binary, contains_files=[]):
     #
+    pdb.set_trace()
     info.src    = src
     info.binary = binary
     info.build_arch = platform.machine()
+
+    if len(contains_files) == 0:
+        contains_files = getfileslist(binary)
+
     for f in contains_files:
         info.checksums.append(checksum_file(f))
     #
