@@ -1,5 +1,4 @@
 import BuildInfo
-import hashlib
 import os
 import platform
 
@@ -33,19 +32,8 @@ def get_deb_packages():
     slist = rslt.split('\n')
     return slist[5:]
 
-def checksum_file(filename):
-    sha256_hash = hashlib.sha256()
-    file_bytes = 0
-    f = open(filename,"rb")
-    # Read and update hash string value in blocks of 4K
-    for byte_block in iter(lambda: f.read(4096),b""):
-        sha256_hash.update(byte_block)
-        file_bytes += len(byte_block)
-    return BuildInfo.Checksum(os.path.basename(filename), file_bytes, sha256_hash.hexdigest())
-
 def __init__(filename, src, binary, contains_files=[]):
     #
-    pdb.set_trace()
     info.src    = src
     info.binary = binary
     info.build_arch = platform.machine()
@@ -54,7 +42,7 @@ def __init__(filename, src, binary, contains_files=[]):
         contains_files = getfileslist(binary)
 
     for f in contains_files:
-        info.checksums.append(checksum_file(f))
+        info[-1] = BuildInfo.Checksum.checksum_file(f) # appends to the end of the checksums
     #
     pkg_str_list = get_deb_packages()
     pkg_list = []
