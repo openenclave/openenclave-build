@@ -36,7 +36,6 @@ class BuildInfo:
             if not isinstance(checksums[0], Checksum):
                 print("Invalid type passed to checksums")
                 return None
-        pdb.set_trace() 
         self.__checksums = checksums
         self.build_path = build_path
         self.build_env = build_env
@@ -221,21 +220,50 @@ class BuildInfo:
         # We want to make sure the file in question is on the path list, binary or lib depending
 
         for checksum in self.__checksums:
+
+            # We fail there is a single false result
             if '.so' in checksum.filename:
                 # Search ldlibpath
+                found = False
                 for lib in liblist:
                     print("look for "+checksum.filename+"in lib path"+lib)
-                    rslt = checksum.verify(lib)
-                    if rslt:
-                        return rslt
+                    try:
+                        for root, dirs, files in os.walk(lib):
+                            if checksum.filename in files:
+                                 rslt = checksum.verify(root)
+
+                        found = True
+                        if not rslt:
+                            return False
+
+                    except FileNotFoundError:
+                        pass
+
+                # If we never found the file, thats an issue
+                if not found:
+                   return False
             else:
                 # search binary path
+                found = False
                 for p in pathlist:
                     print("look for "+checksum.filename+"in bin path"+p)
-                    rslt = checksum.verify(lib)
-                    if rslt:
-                        return rslt
-        return False
+                    try:
+                        for root, dirs, files in os.walk(p):
+                            if checksum.filename in files:
+                                 rslt = checksum.verify(root)
+
+                        found = True
+                        if not rslt:
+                            return False
+
+                    except FileNotFoundError:
+                        pass
+
+                # If we never found the file, thats an issue
+                if not found:
+                   return False
+                
+        return True
 
 
 class Package:
@@ -288,13 +316,13 @@ class Package:
 class Checksum:
     def __init__(self, filename, filelen, hashval):
         self.filename = filename
-        self.filelen  = filelen
+        self.filelen  = int(filelen)
         self.hashval  = hashval
 
     @classmethod
     def from_str(cls, sig_str):
         sig_list = sig_str.split();
-        return cls(sig_list[0], sig_list[1], sig_list[2])
+        return cls(sig_list[2], int(sig_list[1]), sig_list[0])
 
     def __repr__(self):
         return "hashval: "+str(self.hashval)+" filelen:  "+str(self.filelen)+"file name: "+self.filename
@@ -303,14 +331,19 @@ class Checksum:
         return " "+str(self.hashval)+" "+str(self.filelen)+" "+self.filename
 
     def verify(self, path):
-        other = checksum_file(path+"/"+self.filename)
-        return False
+        other = Checksum.checksum_file(path+"/"+self.filename)
+        if other.hashval == self.hashval and other.filelen == self.filelen and other.filename == self.filename:
+            return True
+        else:
+            print(" the file "+path+"/"+self.filename+" is not verified")
+            return False
          
     @classmethod
     def checksum_file(cls, filename):
         sha256_hash = hashlib.sha256()
         file_bytes = 0
         f = open(filename,"rb")
+
         # Read and update hash string value in blocks of 4K
         for byte_block in iter(lambda: f.read(4096),b""):
             sha256_hash.update(byte_block)
