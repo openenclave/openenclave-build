@@ -3,22 +3,76 @@
 # Build a trusted toolchain into the bootstrap build container. 
 #
 
+function verify_signatures() {
+
+    declare -a source_tar_sigs=( \
+        "/tmp/cfe-7.1.0.src.tar.xz.sig" \
+        "/tmp/clang-tools-extra-7.1.0.src.tar.xz.sig" \
+        "/tmp/compiler-rt-7.1.0.src.tar.xz.sig" \
+        "/tmp/libcxx-7.1.0.src.tar.xz.sig" \
+        "/tmp/libunwind-7.1.0.src.tar.xz.sig" \
+        "/tmp/lld-7.1.0.src.tar.xz.sig" \
+        "/tmp/llvm-7.1.0.src.tar.xz.sig" )
+
+    gpg --import /tmp/tstellar-gpg-key.asc
+
+    for this_sig in "${source_tar_sigs[@]}"
+    do
+        rslt=`(gpg --status-fd 1 --verify ${this_sig} 2>/dev/null | grep VALIDSIG)`
+        if (echo $rslt | grep -q VALIDSIG) ; then
+            echo "verified signature " ${this_sig} >&2
+        else
+            echo "could not verify signature " ${this_sig} >&2
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+
 function build_install_toolchain() {
     pushd .
-    # cmake
-    cd ${CMAKE_SRC_DIR}
-    rm CMakeCache.txt
-    ./bootstrap
-    make -j 8
-    make install
-    popd
+    rm ${CMAKE_SRC_DIR}/CMakeCache.txt
+    rm ${CMAKE_BUILD_DIR}/CMakeCache.txt
+    if [ ! -f /usr/local/bin/cmake ];
+    then
+        # cmake
+        cd ${CMAKE_SRC_DIR}
+        ./bootstrap
+        if [ $? -ne 0 ]
+        then
+            echo "cmake cmake failed" >&2
+            return $?
+        fi
+        make -j 8
+        make install
+        popd
+    fi
     pushd .
     mkdir -p ${CMAKE_BUILD_DIR}
     cd  ${CMAKE_BUILD_DIR}
     rm -rf ./*
     cmake -G "Unix Makefiles" ${CMAKE_SRC_DIR}
+    if [ $? -ne 0 ]
+    then
+    echo "cmake cmake failed" >&2
+        return $?
+    fi
+
     make -j 8
+    if [ $? -ne 0 ]
+    then
+    echo "cmake make failed" >&2
+        return $?
+    fi
+
     make install
+    if [ $? -ne 0 ]
+    then
+    echo "cmake make install failed" >&2
+        return $?
+    fi
     popd
     
     pushd .
@@ -27,8 +81,35 @@ function build_install_toolchain() {
     cd ${LLVM_BUILD_DIR}
     rm -rf ./*
     cmake -G "Unix Makefiles" -DLLVM_TARGETS_TO_BUILD="X86"  ${CMAKE_FLAGS}  ${LLVM_SRC_DIR}
+    if [ $? -ne 0 ]
+    then
+        echo "llvm cmake failed" >&2
+        return $?
+    fi
+
     make -j 8
+    if [ $? -ne 0 ]
+    then
+        echo "llvm make failed" >&2
+        return $?
+    fi
+
+    # We have to strip the following files in order to get a reproducible result
+    bin/llvm-strip -strip-all bin/llvm-config
+    cp bin/llvm-config /usr/local/bin/llvm-config
+    if [ $? -ne 0 ]
+    then
+        echo "llvm strip failed" >&2
+        return $?
+    fi
+
     make install
+    if [ $? -ne 0 ]
+    then
+        echo "llvm make install failed" >&2
+        return $?
+    fi
+
     popd
     
     # llvm linker
@@ -37,8 +118,26 @@ function build_install_toolchain() {
     cd ${LLD_BUILD_DIR}
     rm -rf ./*
     cmake -G "Unix Makefiles" ${CMAKE_FLAGS}  ${LLD_SRC_DIR}
+    if [ $? -ne 0 ]
+    then
+        echo "lld cmake failed" >&2
+        return $?
+    fi
+
     make -j 8
+    if [ $? -ne 0 ]
+    then
+        echo "lld make failed" >&2
+        return $?
+    fi
+
     make install
+    if [ $? -ne 0 ]
+    then
+        echo "lld make install failed" >&2
+        return $?
+    fi
+
     popd
     
     # clang compiler
@@ -47,8 +146,26 @@ function build_install_toolchain() {
     cd ${CLANG_BUILD_DIR}
     rm -rf ./*
     cmake -G "Unix Makefiles" -DLLVM_CXX_STD="c++17" ${CMAKE_FLAGS}  ${CLANG_SRC_DIR}
+    if [ $? -ne 0 ]
+    then
+        echo "clang cmake failed" >&2
+        return $?
+    fi
+
     make -j 8
+    if [ $? -ne 0 ]
+    then
+        echo "clang make failed" >&2 >&2
+        return $?
+    fi
+
     make install
+    if [ $? -ne 0 ]
+    then
+        echo "clang make install failed" >&2
+        return $?
+    fi
+
     popd
     
     # clang runtime
@@ -57,8 +174,31 @@ function build_install_toolchain() {
     cd /build/compiler-rt-7.1.0.src
     rm -rf ./*
     cmake -G "Unix Makefiles"  -DLLVM_CXX_STD="c++17"  ${CMAKE_FLAGS} /src/compiler-rt-7.1.0.src 
+    if [ $? -ne 0 ]
+    then
+        echo "clang-rt cmake failed" >&2
+        return $?
+    fi
+
     make -j 8
+    if [ $? -ne 0 ]
+    then
+        echo "clang-rt make failed" >&2
+        return $?
+    fi
+
     make install
+    if [ $? -ne 0 ]
+    then
+        echo "clang-rt make install failed" >&2
+        return $?
+    fi
+    #
+    # Python needs stuff in a slightly different location
+    #
+    mkdir -p /usr/local/lib/clang/7.1.0/lib
+    cp -r lib/linux /usr/local/lib/clang/7.1.0/lib
+
     popd
     
     # libc++
@@ -67,8 +207,26 @@ function build_install_toolchain() {
     cd /build/libcxx-7.1.0.src
     rm -rf ./*
     cmake -G "Unix Makefiles"   -DLLVM_CXX_STD="c++17"  ${CMAKE_FLAGS} /src/libcxx-7.1.0.src
+    if [ $? -ne 0 ]
+    then
+        echo "libcxx cmake failed" >&2
+        return $?
+    fi
+
     make -j 8
+    if [ $? -ne 0 ]
+    then
+        echo "libcxx make failed" >&2
+        return $?
+    fi
+
     make install
+    if [ $? -ne 0 ]
+    then
+        echo "libcxx make install failed" >&2
+        return $?
+    fi
+
     popd
     
     # libunwind
@@ -77,9 +235,28 @@ function build_install_toolchain() {
     cd /build/libunwind-7.1.0.src
     rm -rf ./*
     cmake -G "Unix Makefiles"  -DLLVM_CXX_STD="c++17" ${CMAKE_FLAGS} /src/libunwind-7.1.0.src
+    if [ $? -ne 0 ]
+    then
+        echo "libunwind cmake failed" >&2
+        return $?
+    fi
+
     make -j 8
+    if [ $? -ne 0 ]
+    then
+        echo "libunwind make failed" >&2
+        return $?
+    fi
+
     make install
+    if [ $? -ne 0 ]
+    then
+        echo "libunwind make install failed" >&2
+        return $?
+    fi
+
     popd
+    return 0
 }
 
 
@@ -106,41 +283,78 @@ function build_install_toolchain() {
 #  which will pull the tar file from escrow and load it into the image after checking the sum. 
 #
 #
-
 function build_tools() {
 
-cd /src
-pushd .
-# first build python
-cd cpython
-./configure --enable-optimizations
-make
-make install
-popd
+    cd /src
+    pushd .
+    # first build python
+    cd cpython
+    ./configure --enable-optimizations
+    make -j 8
+    if [ $? -ne 0 ]
+    then
+        echo "cpython make failed" >&2
+        return $?
+    fi
 
-pushd .
-cd ninja
-./bootstrap.py
-ninja
-ninja -t install
-ninja -t clean
-./bootstrap.py
-ninja
-sha256sum ninja /usr/local/bin/ninja
-popd
-# ocaml 
-pushd .
-cd ocaml
-./configure 
-make world.opt
-make install
-make clean
-./configure 
-make world.opt
-popd
+    make install
+    if [ $? -ne 0 ]
+    then
+        echo "cpython make install failed" >&2
+        return $?
+    fi
+    if [ ! -f /usr/local/bin/python ] 
+    then
+        ln -s /usr/local/bin/python3 /usr/local/bin/python
+    fi
+
+    popd
+    
+    # ninja
+    pushd .
+    cd ninja
+    ./bootstrap.py
+    ninja
+    if [ $? -ne 0 ]
+    then
+        echo "ninja build failed" >&2
+        return $?
+    fi
+
+    ninja -t install
+    if [ $? -ne 0 ]
+    then
+        echo "ninja install failed" >&2
+        return $?
+    fi
+
+    popd
+
+    # ocaml 
+    pushd .
+    cd ocaml
+    ./configure 
+    make world.opt
+    if [ $? -ne 0 ]
+    then
+        echo "ocaml build failed" >&2
+        return $?
+    fi
+
+    make install
+    if [ $? -ne 0 ]
+    then
+        echo "ocaml install failed" >&2
+        return $?
+    fi
+
+    popd
 }
 
 
+#
+# clear and rebuild the toolchain, then check the sha256sums agains each binary 
+#
 function build_check_toolchain() {
     pushd .
     
@@ -149,7 +363,7 @@ function build_check_toolchain() {
     cd ${LLVM_BUILD_DIR}
     rm -rf ./*
     cmake -G "Unix Makefiles" -DLLVM_TARGETS_TO_BUILD="X86"  ${CMAKE_FLAGS}  ${LLVM_SRC_DIR}
-    make
+    make -j 8
    # CHECK make install
     
     
@@ -157,8 +371,8 @@ function build_check_toolchain() {
     mkdir -p ${LLD_BUILD_DIR}
     cd ${LLD_BUILD_DIR}
     rm -rf ./*
-    cmake -G "Unix Makefiles" ${CMAKE_FLAGS}  ${LLD_SRC_DIR}
-    make
+    CMAKE_CXX_FLAGS="-std=c++17"  cmake -G "Unix Makefiles" ${CMAKE_FLAGS}  ${LLD_SRC_DIR}
+    make -j 8
     make install
     
     # clang compiler
@@ -166,30 +380,31 @@ function build_check_toolchain() {
     cd ${CLANG_BUILD_DIR}
     rm -rf ./*
     cmake -G "Unix Makefiles" -DLLVM_CXX_STD="c++17" ${CMAKE_FLAGS}  ${CLANG_SRC_DIR}
-    make
+    make -j 8
     
     # clang runtime
     mkdir -p /build/compiler-rt-7.1.0.src
     cd /build/compiler-rt-7.1.0.src
     rm -rf ./*
     cmake -G "Unix Makefiles"  -DLLVM_CXX_STD="c++17"  ${CMAKE_FLAGS} /src/compiler-rt-7.1.0.src 
-    make
+    make -j 8
     
     # libc++
     mkdir -p /build/libcxx-7.1.0.src
     cd /build/libcxx-7.1.0.src
     rm -rf ./*
     cmake -G "Unix Makefiles"   -DLLVM_CXX_STD="c++17"  ${CMAKE_FLAGS} /src/libcxx-7.1.0.src
-    make
+    make -j 8
     
     # libunwind
     mkdir -p /build/libunwind-7.1.0.src
     cd /build/libunwind-7.1.0.src
     rm -rf ./*
     cmake -G "Unix Makefiles"  -DLLVM_CXX_STD="c++17" ${CMAKE_FLAGS} /src/libunwind-7.1.0.src
-    make
+    make -j 8
     
     popd
+
 }
 
 
@@ -228,7 +443,14 @@ export CLANG_BUILD_DIR
 LLVM_TARGET_ARCH="host"
 export LLVM_TARGET_ARCH
 
+#verify_signatures
+
 build_install_toolchain
+if [ $? -ne 0 ]
+then
+   echo "build install toolchain with gcc failed" >&2
+   exit 1
+fi
 
 # We built the toolchain with the default installed tools. We do not trust this toolchain
 # and it will not reproduce if it was built with gcc, which embeds time and data stamps etc.
@@ -250,15 +472,28 @@ then
     export CFLAGS
     export CXXFLAGS
     export CMAKE_FLAGS
-else
-    echo "Did not successfully build toolchain: Clang is not built"
-    exit 3
 fi
-
+#
 # this will overwrite the gcc built toolchain
 build_install_toolchain
+if [ $? -ne 0 ]
+then
+   echo "build install toolchain with clang failed" >&2
+   exit 1
+fi
 
+# First build of the tools, with clang as compiler
 build_tools
 
 #
-# build_compare_toolchain
+/tmp/buildinfo/build_buildinfo
+
+#  we compare the results of the new build against the buildinfo. If there are differences we complain and 
+# fail
+#  
+build_install_toolchain
+
+# Second build of the tools, with clang as compiler should be same sums
+build_tools
+
+/tmp/buildinfo/check_build
