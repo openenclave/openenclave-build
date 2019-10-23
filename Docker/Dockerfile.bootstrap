@@ -16,9 +16,9 @@ ADD ubuntu-base-18.04.3-base-amd64.tar.gz  /
 # Rewrite sources.list to only get from CDN. We would like to trust ubu, but don't
 # 2Do: setup CDN and build dummy 
 
-RUN DEBIAN_FRONTEND=noninteractive apt update
+RUN DEBIAN_FRONTEND=noninteractive apt -y update
 RUN DEBIAN_FRONTEND=noninteractive apt -y dist-upgrade
-RUN DEBIAN_FRONTEND=noninteractive apt-get -y install musl musl-dev ninja-build python3 xz-utils libxml2 libgcc-7-dev make git zlib1g-dev gcc-7 g++-7
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y install musl musl-dev ninja-build python3 xz-utils libxml2 libgcc-7-dev make git zlib1g-dev gcc-7 g++-7 gpg
 
 RUN /bin/bash -c "ln -s /usr/bin/gcc-7 /usr/bin/gcc ; ln -s /usr/bin/g++-7 /usr/bin/g++"
 
@@ -29,9 +29,7 @@ ADD https://github.com/Kitware/CMake/releases/download/v3.15.1/cmake-3.15.1.tar.
 
 #
 COPY build_toolchain.sh /tmp
-COPY build_tools.sh /tmp
-COPY install_toolchain.sh /tmp
-COPY check_toolchain.sh /tmp
+COPY signatures/ /tmp
 
 RUN rm -rf /usr/local ; mkdir -p /usr/local
 
@@ -121,9 +119,6 @@ RUN git clone https://github.com/ninja-build/ninja.git
 RUN /bin/bash -c "pushd . ; cd ninja; git checkout release ; popd"
 
 RUN bash -c 'chmod a+x /tmp/build_toolchain.sh'
-RUN bash -c 'chmod a+x /tmp/install_toolchain.sh'
-RUN bash -c 'chmod a+x /tmp/check_toolchain.sh'
-#RUN bash -c '/tmp/build_install_toolchain.sh'
 
 RUN bash -c "git clone https://github.com/ocaml/ocaml.git"
 RUN bash -c "git clone https://github.com/python/cpython.git"

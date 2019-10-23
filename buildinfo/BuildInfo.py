@@ -241,6 +241,7 @@ class BuildInfo:
 
                 # If we never found the file, thats an issue
                 if not found:
+                   raise FileNotFoundError(checksum.filename)
                    return False
             else:
                 # search binary path
@@ -261,6 +262,7 @@ class BuildInfo:
 
                 # If we never found the file, thats an issue
                 if not found:
+                   raise FileNotFoundError(checksum.filename)
                    return False
                 
         return True
@@ -331,6 +333,7 @@ class Checksum:
         return " "+str(self.hashval)+" "+str(self.filelen)+" "+self.filename
 
     def verify(self, path):
+        print("verify file "+path+"/"+self.filename)
         other = Checksum.checksum_file(path+"/"+self.filename)
         if other.hashval == self.hashval and other.filelen == self.filelen and other.filename == self.filename:
             return True

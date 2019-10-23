@@ -10,9 +10,8 @@ if __name__ == "__main__":
     info = BuildInfo.from_str(buf)
     if not info.verify(os.environ['PATH'], os.environ['LD_LIBRARY_PATH']):
         print("build not verified")
+        pdb.set_trace()
     else:
         print("build is verified")
-
-    
-    pdb.set_trace()
+        return 0
 
