@@ -289,6 +289,7 @@ function build_tools() {
     pushd .
     # first build python
     cd cpython
+    copy /tmp/Setup ./Modules
     ./configure --enable-optimizations
     make -j 8
     if [ $? -ne 0 ]
@@ -321,7 +322,7 @@ function build_tools() {
         return $?
     fi
 
-    ninja -t install
+    cp ninja /usr/local/bin
     if [ $? -ne 0 ]
     then
         echo "ninja install failed" >&2
@@ -443,7 +444,7 @@ export CLANG_BUILD_DIR
 LLVM_TARGET_ARCH="host"
 export LLVM_TARGET_ARCH
 
-#verify_signatures
+verify_signatures
 
 build_install_toolchain
 if [ $? -ne 0 ]
@@ -462,8 +463,8 @@ then
     CC=/usr/local/bin/clang
     CXX=/usr/local/bin/clang++
     LD=/usr/local/bin/ld.lld
-    CFLAGS="-fPIC -fuse-ld=/usr/local/bin/ld.lld"
-    CXXFLAGS="-std=c++17 -stdlib=libstdc++ -fPIC -fuse-ld=/usr/local/bin/ld.lld "
+    CFLAGS="-fPIC -fuse-ld=/usr/local/bin/ld.lld -Wno-unused-command-line-argument"
+    CXXFLAGS="-std=c++17 -stdlib=libstdc++ -fPIC -fuse-ld=/usr/local/bin/ld.lld  -Wno-unused-command-line-argument"
 
     CMAKE_FLAGS=" -DLLVM_TARGET_ARCH="host" -DLLVM_ENABLE_LLD=1 -DCMAKE_BUILD_TYPE=Release"
     export CC
@@ -484,6 +485,11 @@ fi
 
 # First build of the tools, with clang as compiler
 build_tools
+if [ $? -ne 0 ]
+then
+   echo "build install tools with clang failed" >&2
+   exit 1
+fi
 
 #
 /tmp/buildinfo/build_buildinfo
@@ -492,8 +498,23 @@ build_tools
 # fail
 #  
 build_install_toolchain
+if [ $? -ne 0 ]
+then
+   echo "build install toolchain with clang for compare failed" >&2
+   exit 1
+fi
 
 # Second build of the tools, with clang as compiler should be same sums
 build_tools
+if [ $? -ne 0 ]
+then
+   echo "build tools with clang for compare failed" >&2
+   exit 1
+fi
 
 /tmp/buildinfo/check_build
+if [ $? -ne 0 ]
+then
+   echo "check build failed" >&2
+   exit 1
+fi

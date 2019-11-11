@@ -23,18 +23,19 @@ function verify_sum() {
     fi
 }
 
-IMAGE_URI="http://cdimage.ubuntu.com/ubuntu-base/releases/18.04/release/ubuntu-base-18.04.3-base-amd64.tar.gz" 
+#IMAGE_URI="http://cdimage.ubuntu.com/ubuntu-base/releases/18.04/release/ubuntu-base-18.04.3-base-amd64.tar.gz" 
+IMAGE_URI="https://oedownload.blob.core.windows.net/oe-build/ubuntu-base-18.04.3-base-amd64.tar.gz?st=2019-10-25T16%3A53%3A03Z&se=2020-10-26T16%3A53%3A00Z&sp=rl&sv=2018-03-28&sr=b&sig=yOKo%2B7dnDrhc%2F%2FrUpemCeGsQNrN2GdOLmzsYiiQbm6o%3D"
 SIGNATURE_URI="http://cdimage.ubuntu.com/ubuntu-base/releases/18.04/release/SHA256SUMS" 
 
 
 DIR="$( dirname "${BASH_SOURCE[0]}" )"
 pushd Docker
-rm ubuntu-base-18.04.3-base-amd64.tar.gz
+rm ${IMAGE_FILE}
 rm ${IMAGE_FILE}
 rm ${SIGNATURE_FILE}
 
-wget ${IMAGE_URI}
-wget ${SIGNATURE_URI}
+wget ${IMAGE_URI} -O ${IMAGE_FILE} 
+wget ${SIGNATURE_URI} -O ${SIGNATURE_FILE}
 verify_sum
 
 rm -rf build

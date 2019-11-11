@@ -2,6 +2,7 @@
 from BuildInfo import BuildInfo
 import pdb
 import os
+import sys
 
 if __name__ == "__main__":
     f = open("/build/secure-build.buildinfo", "r")
@@ -10,8 +11,8 @@ if __name__ == "__main__":
     info = BuildInfo.from_str(buf)
     if not info.verify("/usr/local", "/usr/local"):
         print("build not verified")
-        return 5
+        sys.exit( 5 )
     else:
         print("build is verified")
-        return 0
+        sys.exit( 0 )
 
