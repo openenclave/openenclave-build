@@ -7,6 +7,8 @@ FROM scratch
 # this can't come from a URL because it won't get unpacked. 
 # We need a tight secure CDN to hold golden images. 
 ADD ubuntu-base-18.04.3-base-amd64.tar.gz  /
+ADD https://oedownload.blob.core.windows.net/oe-build/intel-sgx/libsgx-enclave-common-dev_2.7.100.4-bionic1_amd64.deb?st=2019-10-25T16%3A55%3A41Z&se=2020-10-26T16%3A55%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=nJWY1Q%2FXHkdKRBtfKdjHEbhDZU8zTOZ6Mc0JTjZK2gU%3D /tmp/libsgx-enclave-common-dev+2.7.100.4-bionic_amd64.deb
+ADD https://oedownload.blob.core.windows.net/oe-build/intel-sgx/libsgx-enclave-common_2.7.100.4-bionic1_amd64.deb?st=2019-10-25T16%3A55%3A41Z&se=2020-10-26T16%3A55%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=nJWY1Q%2FXHkdKRBtfKdjHEbhDZU8zTOZ6Mc0JTjZK2gU%3D /tmp/libsgx-enclave-common+2.7.100.4-bionic_amd64.deb
 #ADD https://oebuildinfo.blob.core.windows.net/buildinfo/ubuntu-base-18.04.3-base-amd64.tar.gz.sig
 
 #
@@ -16,11 +18,11 @@ ADD ubuntu-base-18.04.3-base-amd64.tar.gz  /
 # Rewrite sources.list to only get from CDN. We would like to trust ubu, but don't
 # 2Do: setup CDN and build dummy 
 
-RUN DEBIAN_FRONTEND=noninteractive apt -y update
+RUN DEBIAN_FRONTEND=noninteractive apt -y update --fix-missing
 RUN DEBIAN_FRONTEND=noninteractive apt -y dist-upgrade
-RUN DEBIAN_FRONTEND=noninteractive apt-get -y install musl musl-dev ninja-build python3 xz-utils libxml2 libgcc-7-dev make git zlib1g-dev gcc-7 g++-7 gpg
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y install musl musl-dev ninja-build python3 xz-utils libxml2 libgcc-7-dev make git zlib1g zlib1g-dev libreadline-dev libsqlite3-dev libbz2-dev libffi-dev liblzma-dev python-openssl gcc-7 g++-7 gpg libssl-dev dpkg-dev
 
-RUN /bin/bash -c "ln -s /usr/bin/gcc-7 /usr/bin/gcc ; ln -s /usr/bin/g++-7 /usr/bin/g++"
+RUN /bin/bash -c "ln -sf /usr/bin/gcc-7 /usr/bin/gcc ; ln -sf /usr/bin/g++-7 /usr/bin/g++"
 
 # Now cmake. 
 # 2do: Cmake should be coming from our CDN. Even if using the debian package was a good idea, the
@@ -52,38 +54,54 @@ ENV PATH=/usr/local/bin:/bin:/sbin:/usr/bin
 ##ADD http://releases.llvm.org/7.0.1/clang+llvm-7.0.1-x86_64-linux-gnu-ubuntu-18.04.tar.xz.sig /tmp
 
 # linker
-ADD https://github.com/llvm/llvm-project/releases/download/llvmorg-7.1.0/lld-7.1.0.src.tar.xz /tmp
-ADD https://github.com/llvm/llvm-project/releases/download/llvmorg-7.1.0/lld-7.1.0.src.tar.xz.sig /tmp
+#ADD https://github.com/llvm/llvm-project/releases/download/llvmorg-7.1.0/lld-7.1.0.src.tar.xz /tmp
+#ADD https://github.com/llvm/llvm-project/releases/download/llvmorg-7.1.0/lld-7.1.0.src.tar.xz.sig /tmp
+ADD https://oedownload.blob.core.windows.net/oe-build/llvm-src/lld-7.1.0.src.tar.xz?st=2019-11-01T16%3A12%3A28Z&se=2020-11-02T16%3A12%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=qHu9rtuvCR6f5d9esJ7w6t7aaEp%2F4gyE5hmDd8uM0d8%3D /tmp/lld-7.1.0.src.tar.xz
+ADD  https://oeverify.blob.core.windows.net/oe-build/llvm-src/lld-7.1.0.src.tar.xz.sig?st=2019-11-01T16%3A09%3A42Z&se=2020-11-02T16%3A09%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=fL4Q3n0VIicenrz2yxm%2FWsS2qHBwWxm%2BeF8eiqOnAA0%3D /tmp/lld-7.1.0.src.tar.xz.sig
 
 # compiler
-ADD http://releases.llvm.org/7.1.0/cfe-7.1.0.src.tar.xz /tmp
-ADD http://releases.llvm.org/7.1.0/cfe-7.1.0.src.tar.xz.sig /tmp
+#ADD http://releases.llvm.org/7.1.0/cfe-7.1.0.src.tar.xz /tmp
+#ADD http://releases.llvm.org/7.1.0/cfe-7.1.0.src.tar.xz.sig /tmp
+ADD   https://oedownload.blob.core.windows.net/oe-build/llvm-src/cfe-7.1.0.src.tar.xz?st=2019-11-01T16%3A12%3A28Z&se=2020-11-02T16%3A12%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=qHu9rtuvCR6f5d9esJ7w6t7aaEp%2F4gyE5hmDd8uM0d8%3D /tmp/cfe-7.1.0.src.tar.xz
+ADD   https://oeverify.blob.core.windows.net/oe-build/llvm-src/cfe-7.1.0.src.tar.xz.sig?st=2019-11-01T16%3A09%3A42Z&se=2020-11-02T16%3A09%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=fL4Q3n0VIicenrz2yxm%2FWsS2qHBwWxm%2BeF8eiqOnAA0%3D /tmp/cfe-7.1.0.src.tar.xz.sig
 
 # compiler run time
-ADD http://releases.llvm.org/7.1.0/compiler-rt-7.1.0.src.tar.xz  /tmp
-ADD http://releases.llvm.org/7.1.0/compiler-rt-7.1.0.src.tar.xz.sig  /tmp
+#ADD http://releases.llvm.org/7.1.0/compiler-rt-7.1.0.src.tar.xz  /tmp
+#ADD http://releases.llvm.org/7.1.0/compiler-rt-7.1.0.src.tar.xz.sig  /tmp
+ADD  https://oedownload.blob.core.windows.net/oe-build/llvm-src/compiler-rt-7.1.0.src.tar.xz?st=2019-11-01T16%3A12%3A28Z&se=2020-11-02T16%3A12%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=qHu9rtuvCR6f5d9esJ7w6t7aaEp%2F4gyE5hmDd8uM0d8%3D /tmp/compiler-rt-7.1.0.src.tar.xz
+ADD  https://oeverify.blob.core.windows.net/oe-build/llvm-src/compiler-rt-7.1.0.src.tar.xz.sig?st=2019-11-01T16%3A09%3A42Z&se=2020-11-02T16%3A09%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=fL4Q3n0VIicenrz2yxm%2FWsS2qHBwWxm%2BeF8eiqOnAA0%3D /tmp/compiler-rt-7.1.0.src.tar.xz.sig
 
 # libc++
-ADD http://releases.llvm.org/7.1.0/libcxx-7.1.0.src.tar.xz /tmp
-ADD http://releases.llvm.org/7.1.0/libcxx-7.1.0.src.tar.xz.sig /tmp
+#ADD http://releases.llvm.org/7.1.0/libcxx-7.1.0.src.tar.xz /tmp
+#ADD http://releases.llvm.org/7.1.0/libcxx-7.1.0.src.tar.xz.sig /tmp
+ADD  https://oedownload.blob.core.windows.net/oe-build/llvm-src/libcxx-7.1.0.src.tar.xz?st=2019-11-01T16%3A12%3A28Z&se=2020-11-02T16%3A12%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=qHu9rtuvCR6f5d9esJ7w6t7aaEp%2F4gyE5hmDd8uM0d8%3D /tmp/libcxx-7.1.0.src.tar.xz
+ADD  https://oeverify.blob.core.windows.net/oe-build/llvm-src/libcxx-7.1.0.src.tar.xz.sig?st=2019-11-01T16%3A09%3A42Z&se=2020-11-02T16%3A09%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=fL4Q3n0VIicenrz2yxm%2FWsS2qHBwWxm%2BeF8eiqOnAA0%3D /tmp/libcxx-7.1.0.src.tar.xz.sig
 
 # libunwind
-ADD http://releases.llvm.org/7.1.0/libunwind-7.1.0.src.tar.xz /tmp
-ADD http://releases.llvm.org/7.1.0/libunwind-7.1.0.src.tar.xz.sig /tmp
+#ADD http://releases.llvm.org/7.1.0/libunwind-7.1.0.src.tar.xz /tmp
+#ADD http://releases.llvm.org/7.1.0/libunwind-7.1.0.src.tar.xz.sig /tmp
+ADD  https://oedownload.blob.core.windows.net/oe-build/llvm-src/libunwind-7.1.0.src.tar.xz?st=2019-11-01T16%3A12%3A28Z&se=2020-11-02T16%3A12%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=qHu9rtuvCR6f5d9esJ7w6t7aaEp%2F4gyE5hmDd8uM0d8%3D /tmp/libunwind-7.1.0.src.tar.xz
+ADD  https://oeverify.blob.core.windows.net/oe-build/llvm-src/libunwind-7.1.0.src.tar.xz.sig?st=2019-11-01T16%3A09%3A42Z&se=2020-11-02T16%3A09%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=fL4Q3n0VIicenrz2yxm%2FWsS2qHBwWxm%2BeF8eiqOnAA0%3D /tmp/libunwind-7.1.0.src.tar.xz.sig
 
 # tools extra
-ADD http://releases.llvm.org/7.1.0/clang-tools-extra-7.1.0.src.tar.xz  /tmp
-ADD http://releases.llvm.org/7.1.0/clang-tools-extra-7.1.0.src.tar.xz.sig  /tmp
+#ADD http://releases.llvm.org/7.1.0/clang-tools-extra-7.1.0.src.tar.xz  /tmp
+#ADD http://releases.llvm.org/7.1.0/clang-tools-extra-7.1.0.src.tar.xz.sig  /tmp
+ADD  https://oedownload.blob.core.windows.net/oe-build/llvm-src/clang-tools-extra-7.1.0.src.tar.xz?st=2019-11-01T16%3A12%3A28Z&se=2020-11-02T16%3A12%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=qHu9rtuvCR6f5d9esJ7w6t7aaEp%2F4gyE5hmDd8uM0d8%3D /tmp/clang-tools-extra-7.1.0.src.tar.xz
+ADD  https://oeverify.blob.core.windows.net/oe-build/llvm-src/clang-tools-extra-7.1.0.src.tar.xz.sig?st=2019-11-01T16%3A09%3A42Z&se=2020-11-02T16%3A09%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=fL4Q3n0VIicenrz2yxm%2FWsS2qHBwWxm%2BeF8eiqOnAA0%3D /tmp/clang-tools-extra-7.1.0.src.tar.xz.sig
 
 # polly
-ADD http://releases.llvm.org/7.1.0/polly-7.1.0.src.tar.xz  /tmp
-ADD http://releases.llvm.org/7.1.0/polly-7.1.0.src.tar.xz.sig  /tmp
+#ADD http://releases.llvm.org/7.1.0/polly-7.1.0.src.tar.xz  /tmp
+#ADD http://releases.llvm.org/7.1.0/polly-7.1.0.src.tar.xz.sig  /tmp
+ADD  https://oedownload.blob.core.windows.net/oe-build/llvm-src/polly-7.1.0.src.tar.xz?st=2019-11-01T16%3A12%3A28Z&se=2020-11-02T16%3A12%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=qHu9rtuvCR6f5d9esJ7w6t7aaEp%2F4gyE5hmDd8uM0d8%3D /tmp/polly-7.1.0.src.tar.xz
+ADD  https://oeverify.blob.core.windows.net/oe-build/llvm-src/polly-7.1.0.src.tar.xz.sig?st=2019-11-01T16%3A09%3A42Z&se=2020-11-02T16%3A09%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=fL4Q3n0VIicenrz2yxm%2FWsS2qHBwWxm%2BeF8eiqOnAA0%3D /tmp/polly-7.1.0.src.tar.xz.sig
 #
 # We bootstrap with a prebuilt compiler, but then build the toolchain and check the signatures against the 
 # prebuilt. If the signatures don't match we have a security issue.
-# 2do: build and tar a private build to be served from the CDN
-ADD http://releases.llvm.org/7.1.0/llvm-7.1.0.src.tar.xz /tmp
-ADD http://releases.llvm.org/7.1.0/llvm-7.1.0.src.tar.xz.sig /tmp
+# 
+#ADD http://releases.llvm.org/7.1.0/llvm-7.1.0.src.tar.xz /tmp
+#ADD http://releases.llvm.org/7.1.0/llvm-7.1.0.src.tar.xz.sig /tmp
+ADD  https://oedownload.blob.core.windows.net/oe-build/llvm-src/llvm-7.1.0.src.tar.xz?st=2019-11-01T16%3A12%3A28Z&se=2020-11-02T16%3A12%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=qHu9rtuvCR6f5d9esJ7w6t7aaEp%2F4gyE5hmDd8uM0d8%3D /tmp/llvm-7.1.0.src.tar.xz
+ADD  https://oeverify.blob.core.windows.net/oe-build/llvm-src/llvm-7.1.0.src.tar.xz.sig?st=2019-11-01T16%3A09%3A42Z&se=2020-11-02T16%3A09%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=fL4Q3n0VIicenrz2yxm%2FWsS2qHBwWxm%2BeF8eiqOnAA0%3D /tmp/llvm-7.1.0.src.tar.xz.sig
 
 #RUN tar xvfJ /tmp/clang+llvm-7.0.1-x86_64-linux-gnu-ubuntu-18.04.tar.xz 
 #RUN /bin/bash -c "\
@@ -123,8 +141,14 @@ RUN bash -c 'chmod a+x /tmp/build_toolchain.sh'
 RUN bash -c "git clone https://github.com/ocaml/ocaml.git"
 RUN bash -c "git clone https://github.com/python/cpython.git"
 
+# cpython has to be edited or it won't bild the zlib package and that breaks a bunch of stuff
+COPY hacks/cpython/Setup /tmp
+
+
 RUN mkdir -p /tmp/buildinfo
 COPY build/buildinfo/. /tmp/buildinfo/
 
+ADD  https://oedownload.blob.core.windows.net/oe-build/esy/esy-0.5.8.tgz?st=2019-11-01T16%3A12%3A28Z&se=2020-11-02T16%3A12%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=qHu9rtuvCR6f5d9esJ7w6t7aaEp%2F4gyE5hmDd8uM0d8%3D /tmp/eys-0.5.8.tgz
+ADD  https://oedownload.blob.core.windows.net/oe-build/esy/esy-solve-cudf-0.1.10.tgz?st=2019-11-01T16%3A12%3A28Z&se=2020-11-02T16%3A12%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=qHu9rtuvCR6f5d9esJ7w6t7aaEp%2F4gyE5hmDd8uM0d8%3D /tmp/eys-solve-cudf-0.1.10.tgz
 CMD ["/bin/bash"]
 
