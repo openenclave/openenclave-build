@@ -113,6 +113,7 @@ ADD  https://oeverify.blob.core.windows.net/oe-build/llvm-src/llvm-7.1.0.src.tar
 #    "
 RUN mkdir -p /src
 RUN mkdir -p /build
+RUN mkdir -p /output
 
 WORKDIR /src
 
@@ -147,8 +148,11 @@ COPY hacks/cpython/Setup /tmp
 
 RUN mkdir -p /tmp/buildinfo
 COPY build/buildinfo/. /tmp/buildinfo/
-
-ADD  https://oedownload.blob.core.windows.net/oe-build/esy/esy-0.5.8.tgz?st=2019-11-01T16%3A12%3A28Z&se=2020-11-02T16%3A12%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=qHu9rtuvCR6f5d9esJ7w6t7aaEp%2F4gyE5hmDd8uM0d8%3D /tmp/eys-0.5.8.tgz
+ADD  https://oedownload.blob.core.windows.net/oe-build/esy/esy-0.5.8.tgz?st=2019-11-01T16%3A12%3A28Z&se=2020-11-02T16%3A12%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=qHu9rtuvCR6f5d9esJ7w6t7aaEp%2F4gyE5hmDd8uM0d8%3D /tmp/esy-0.5.8.tgz
 ADD  https://oedownload.blob.core.windows.net/oe-build/esy/esy-solve-cudf-0.1.10.tgz?st=2019-11-01T16%3A12%3A28Z&se=2020-11-02T16%3A12%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=qHu9rtuvCR6f5d9esJ7w6t7aaEp%2F4gyE5hmDd8uM0d8%3D /tmp/eys-solve-cudf-0.1.10.tgz
+
+
+# Add the intel sgx software
+
 CMD ["/bin/bash"]
 

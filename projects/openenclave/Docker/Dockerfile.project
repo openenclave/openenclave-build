@@ -1,0 +1,38 @@
+FROM candidate
+#FROM scratch
+#ADD secure_build.tar /
+
+# The way to get a trusted build is to start with a trusted build. If we don't have one,
+# we need to use untrusted components to perform the build, then rebuild with the provisionally trusted components, 
+# then compare. If we get different contents, we don't know where the problem is, but we would know there is a problem.
+
+# this can't come from a URL because it won't get unpacked. 
+# We need a tight secure CDN to hold golden images. 
+#ADD secure_build-11-29-20019.tar  /
+
+#
+# Workaround. The image has bogus esy filenames in /tmp
+#
+RUN mv /tmp/eys-0.5.8.tgz  /tmp/esy-0.5.8.tgz
+RUN mv /tmp/eys-solve-cudf-0.1.10.tgz /tmp/esy-solve-cudf-0.1.10.tgz 
+
+# 2d0: Disable apt
+#
+
+# Add the dcap quote provider, but this should be done in the bootstrap image
+ADD libsgx-dcap-ql_1.3.101.3-bionic1_amd64.deb /tmp
+ADD libsgx-dcap-ql-dev_1.3.101.3-bionic1_amd64.deb /tmp 
+
+ADD build_project.sh /tmp
+
+# Workaround This should be added to the bootstrap image
+RUN apt install libcurl4
+RUN apt install libprotobuf10
+
+# Install libsgx packages
+RUN dpkg -i /tmp/libsgx-enclave-common+2.7.100.4-bionic_amd64.deb
+RUN dpkg -i /tmp/libsgx-enclave-common-dev+2.7.100.4-bionic_amd64.deb
+RUN dpkg -i /tmp/libsgx-dcap-ql_1.3.101.3-bionic1_amd64.deb
+RUN dpkg -i /tmp/libsgx-dcap-ql-dev_1.3.101.3-bionic1_amd64.deb
+
+#RUN /bin/bash

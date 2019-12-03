@@ -353,62 +353,6 @@ function build_tools() {
 }
 
 
-#
-# clear and rebuild the toolchain, then check the sha256sums agains each binary 
-#
-function build_check_toolchain() {
-    pushd .
-    
-    # llvm tools
-    mkdir -p ${LLVM_BUILD_DIR}
-    cd ${LLVM_BUILD_DIR}
-    rm -rf ./*
-    cmake -G "Unix Makefiles" -DLLVM_TARGETS_TO_BUILD="X86"  ${CMAKE_FLAGS}  ${LLVM_SRC_DIR}
-    make -j 8
-   # CHECK make install
-    
-    
-    # llvm linker
-    mkdir -p ${LLD_BUILD_DIR}
-    cd ${LLD_BUILD_DIR}
-    rm -rf ./*
-    CMAKE_CXX_FLAGS="-std=c++17"  cmake -G "Unix Makefiles" ${CMAKE_FLAGS}  ${LLD_SRC_DIR}
-    make -j 8
-    make install
-    
-    # clang compiler
-    mkdir -p ${CLANG_BUILD_DIR}
-    cd ${CLANG_BUILD_DIR}
-    rm -rf ./*
-    cmake -G "Unix Makefiles" -DLLVM_CXX_STD="c++17" ${CMAKE_FLAGS}  ${CLANG_SRC_DIR}
-    make -j 8
-    
-    # clang runtime
-    mkdir -p /build/compiler-rt-7.1.0.src
-    cd /build/compiler-rt-7.1.0.src
-    rm -rf ./*
-    cmake -G "Unix Makefiles"  -DLLVM_CXX_STD="c++17"  ${CMAKE_FLAGS} /src/compiler-rt-7.1.0.src 
-    make -j 8
-    
-    # libc++
-    mkdir -p /build/libcxx-7.1.0.src
-    cd /build/libcxx-7.1.0.src
-    rm -rf ./*
-    cmake -G "Unix Makefiles"   -DLLVM_CXX_STD="c++17"  ${CMAKE_FLAGS} /src/libcxx-7.1.0.src
-    make -j 8
-    
-    # libunwind
-    mkdir -p /build/libunwind-7.1.0.src
-    cd /build/libunwind-7.1.0.src
-    rm -rf ./*
-    cmake -G "Unix Makefiles"  -DLLVM_CXX_STD="c++17" ${CMAKE_FLAGS} /src/libunwind-7.1.0.src
-    make -j 8
-    
-    popd
-
-}
-
-
 SRC=/src
 # Builds and installs tool chain. Initally we use an untrusted bootstrap compiler, then replace the 
 # untrusted compiler with one built from trusted sources, then rebuild again and check the sha256sum of 

@@ -7,6 +7,11 @@ import pdb
 
 info = BuildInfo.BuildInfo()
 
+__Buildinfo_Path__ = os.environ['SECUREBUILD_BUILDINFO_FILEPATH']
+if not __Buildinfo_Path__:
+    __Buildinfo_Path__ = '/output/secure-build.buildinfo'
+
+
 #
 # Returns all of the files in a directory tree that are executable files that are not an intermediate build product
 #
@@ -27,14 +32,13 @@ def getfileslist(path):
 
 
 
-def get_deb_packages():
+def get_deb_packages(filename):
     rslt = os.popen('dpkg -l').read()
     slist = rslt.split('\n')
     return slist[5:]
 
 if __name__ == "__main__":
 
-    filename = "/build/secure-build.buildinfo"
     src = "/src"
     binary = "/build"
     contains_files=[]
@@ -59,7 +63,7 @@ if __name__ == "__main__":
             pkg_list.append(BuildInfo.Package(pkg[1], pkg[2], pkg[3], pkg[4],  ".deb"))
         info.build_env = pkg_list
     bi_str = str(info)
-    f = open(filename, "w+")
+    f = open(__Buildinfo_Path__, "w+")
     f.write(bi_str)
     f.close()
 

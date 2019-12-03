@@ -41,5 +41,8 @@ verify_sum
 rm -rf build
 mkdir -p build
 cp -r ../buildinfo build
-docker build -f Dockerfile.bootstrap .
+docker rm -f container_build
+docker build -t candidate -f Dockerfile.bootstrap . 
+docker run --name container_build -m 24G --memory-swap=-1 -v /home/brcamp/tmp/src:/output -it candidate /tmp/build_toolchain.sh
+docker commit container_build candidate
 popd
