@@ -1,0 +1,27 @@
+FROM scratch
+
+# The way to get a trusted build is to start with a trusted build. If we don't have one,
+# we need to use untrusted components to perform the build, then rebuild with the provisionally trusted components, 
+# then compare. If we get different contents, we don't know where the problem is, but we would know there is a problem.
+
+# this can't come from a URL because it won't get unpacked. 
+# We need a tight secure CDN to hold golden images. 
+ADD ubuntu-base-18.04.3-base-amd64.tar.gz  /
+#
+# Check the signature.
+
+#Unpack the golden cmake
+WORKDIR /tmp
+#RUN tar xvfz cmake-3.15.1-Linux-x86_64.tar.gz
+#RUN /bin/bash -c "\
+#    pushd . ;\
+#    cd cmake-3.15.1-Linux-x86_64 ; \
+#    cp -Rf * /usr/local/ ; \
+#    popd \
+#    "
+ENV PATH=/usr/local/bin:/bin:/sbin:/usr/bin
+
+#
+
+CMD ["/bin/bash"]
+

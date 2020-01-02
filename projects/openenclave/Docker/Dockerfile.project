@@ -1,5 +1,6 @@
 FROM candidate
 #FROM scratch
+
 #ADD secure_build.tar /
 
 # The way to get a trusted build is to start with a trusted build. If we don't have one,

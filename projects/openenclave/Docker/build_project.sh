@@ -6,6 +6,8 @@
 
 
 # 2do: double verify the toolchain.
+# Use the buildinfo associated with this image
+#/tmp/buildinfo/check_build 
 
 # Install 
 apt install -y libcurl4      # THis should be in the bootstrap image

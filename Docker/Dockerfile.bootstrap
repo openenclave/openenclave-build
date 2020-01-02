@@ -9,6 +9,8 @@ FROM scratch
 ADD ubuntu-base-18.04.3-base-amd64.tar.gz  /
 ADD https://oedownload.blob.core.windows.net/oe-build/intel-sgx/libsgx-enclave-common-dev_2.7.100.4-bionic1_amd64.deb?st=2019-10-25T16%3A55%3A41Z&se=2020-10-26T16%3A55%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=nJWY1Q%2FXHkdKRBtfKdjHEbhDZU8zTOZ6Mc0JTjZK2gU%3D /tmp/libsgx-enclave-common-dev+2.7.100.4-bionic_amd64.deb
 ADD https://oedownload.blob.core.windows.net/oe-build/intel-sgx/libsgx-enclave-common_2.7.100.4-bionic1_amd64.deb?st=2019-10-25T16%3A55%3A41Z&se=2020-10-26T16%3A55%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=nJWY1Q%2FXHkdKRBtfKdjHEbhDZU8zTOZ6Mc0JTjZK2gU%3D /tmp/libsgx-enclave-common+2.7.100.4-bionic_amd64.deb
+ADD https://oedownload.blob.core.windows.net/oe-build/intel-sgx/libsgx-dcap-ql-dev_1.3.101.3-bionic1_amd64.deb?st=2019-10-25T16%3A55%3A41Z&se=2020-10-26T16%3A55%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=nJWY1Q%2FXHkdKRBtfKdjHEbhDZU8zTOZ6Mc0JTjZK2gU%3D /tmp/libsgx-dcap-ql-dev_1.3.101.3-bionic1_amd64.deb
+ADD https://oedownload.blob.core.windows.net/oe-build/intel-sgx/libsgx-dcap-ql_1.3.101.3-bionic1_amd64.deb?st=2019-10-25T16%3A55%3A41Z&se=2020-10-26T16%3A55%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=nJWY1Q%2FXHkdKRBtfKdjHEbhDZU8zTOZ6Mc0JTjZK2gU%3D /tmp/libsgx-dcap-ql_1.3.101.3-bionic1_amd64.deb
 #ADD https://oebuildinfo.blob.core.windows.net/buildinfo/ubuntu-base-18.04.3-base-amd64.tar.gz.sig
 
 #
@@ -18,9 +20,24 @@ ADD https://oedownload.blob.core.windows.net/oe-build/intel-sgx/libsgx-enclave-c
 # Rewrite sources.list to only get from CDN. We would like to trust ubu, but don't
 # 2Do: setup CDN and build dummy 
 
-RUN DEBIAN_FRONTEND=noninteractive apt -y update --fix-missing
-RUN DEBIAN_FRONTEND=noninteractive apt -y dist-upgrade
-RUN DEBIAN_FRONTEND=noninteractive apt-get -y install musl musl-dev ninja-build python3 xz-utils libxml2 libgcc-7-dev make git zlib1g zlib1g-dev libreadline-dev libsqlite3-dev libbz2-dev libffi-dev liblzma-dev python-openssl gcc-7 g++-7 gpg libssl-dev dpkg-dev
+#
+# Replace apt with downloaded and verified deb using dpkg -i
+#
+# RUN DEBIAN_FRONTEND=noninteractive apt -y update --fix-missing
+# RUN DEBIAN_FRONTEND=noninteractive apt -y dist-upgrade# RUN DEBIAN_FRONTEND=noninteractive apt-get -y install musl musl-dev ninja-build python3 xz-utils libxml2 libgcc-7-dev make git zlib1g zlib1g-dev libreadline-dev libsqlite3-dev libbz2-dev libffi-dev liblzma-dev python-openssl gcc-7 g++-7 gpg libssl-dev dpkg-dev
+
+
+ADD https://oedownload.blob.core.windows.net/oe-build/ubuntu-18.04/secure-build.pkgs.tar.gz?st=2019-12-31T16%3A52%3A31Z&se=2020-01-01T16%3A52%3A31Z&sp=rl&sv=2018-03-28&sr=b&sig=CRWbgt0wXNb1x11DlMdNBf8ZuDv1or60ikjKH7VvW7E%3D /tmp/secure-build.pkgs.tar.gz
+
+ADD https://oebuildinfo.blob.core.windows.net/buildinfo/secure-build.pkgs.tar.gz.sha256sum?st=2019-12-31T16%3A50%3A48Z&se=2020-01-01T16%3A50%3A48Z&sp=rl&sv=2018-03-28&sr=b&sig=unuFtV7b%2BNUatT0TGaLQwgw4nA19J9fM%2Bc2UmY3MaTA%3D /tmp//secure-build.pkgs.tar.gz.sha256sum
+ADD package-list /tmp
+ADD install-packages.sh /tmp
+
+#
+# dpkg can result in some unresolved dependencies. dpkg --configure should resolve them
+WORKDIR /tmp
+RUN /bin/bash -c "mkdir -p deb && pushd deb &&  tar xvfz /tmp/secure-build.pkgs.tar.gz && popd && /tmp/install-packages.sh /tmp/package-list /tmp/deb"
+
 
 RUN /bin/bash -c "ln -sf /usr/bin/gcc-7 /usr/bin/gcc ; ln -sf /usr/bin/g++-7 /usr/bin/g++"
 
@@ -32,12 +49,12 @@ ADD https://github.com/Kitware/CMake/releases/download/v3.15.1/cmake-3.15.1.tar.
 #
 COPY build_toolchain.sh /tmp
 COPY signatures/ /tmp
+COPY pkglist.base/ /tmp
 
 RUN rm -rf /usr/local ; mkdir -p /usr/local
 
 #
 #Unpack the golden cmake
-WORKDIR /tmp
 #RUN tar xvfz cmake-3.15.1-Linux-x86_64.tar.gz
 #RUN /bin/bash -c "\
 #    pushd . ;\

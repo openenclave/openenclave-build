@@ -7,9 +7,13 @@ import pdb
 
 info = BuildInfo.BuildInfo()
 
-__Buildinfo_Path__ = os.environ['SECUREBUILD_BUILDINFO_FILEPATH']
-if not __Buildinfo_Path__:
-    __Buildinfo_Path__ = '/output/secure-build.buildinfo'
+try:
+    __BuildInfo_Path__ = os.environ['SECUREBUILD_BUILDINFO_FILEPATH']
+except KeyError:
+    __BuildInfo_Path__ = '/output/secure-build.buildinfo'
+
+if not __BuildInfo_Path__:
+    __BuildInfo_Path__ = '/output/secure-build.buildinfo'
 
 
 #
@@ -32,7 +36,7 @@ def getfileslist(path):
 
 
 
-def get_deb_packages(filename):
+def get_deb_packages():
     rslt = os.popen('dpkg -l').read()
     slist = rslt.split('\n')
     return slist[5:]
@@ -63,7 +67,7 @@ if __name__ == "__main__":
             pkg_list.append(BuildInfo.Package(pkg[1], pkg[2], pkg[3], pkg[4],  ".deb"))
         info.build_env = pkg_list
     bi_str = str(info)
-    f = open(__Buildinfo_Path__, "w+")
+    f = open(__BuildInfo_Path__, "w+")
     f.write(bi_str)
     f.close()
 

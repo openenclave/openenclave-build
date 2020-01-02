@@ -3,12 +3,16 @@ from BuildInfo import BuildInfo
 import pdb
 import os
 
-__Buildinfo_Path__ = os.environ['SECUREBUILD_BUILDINFO_FILEPATH']
-if not __Buildinfo_Path__:
-    __Buildinfo_Path__ = '/output/secure-build.buildinfo'
+try:
+    __BuildInfo_Path__ = os.environ['SECUREBUILD_BUILDINFO_FILEPATH']
+except KeyError:
+    __BuildInfo_Path__ = '/output/secure-build.buildinfo'
+
+if not __BuildInfo_Path__:
+    __BuildInfo_Path__ = '/output/secure-build.buildinfo'
 
 if __name__ == "__main__":
-    f = open(__Buildinfo_Path__, "r")
+    f = open(__BuildInfo_Path__, "r")
     buf = f.readlines()
 
     info = BuildInfo.from_str(buf)

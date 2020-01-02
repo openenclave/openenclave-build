@@ -1,11 +1,6 @@
 #!/bin/bash
 #
 #
-# invokation:
-#   sudo ./build_bootstrap.sh [outputdir]
-#
-# where outputdir is the option destination directory of the resulting image
-#
 # Builds a bootstrap verified toolchain in a container
 # using minimum environment
 
@@ -32,9 +27,6 @@ function verify_sum() {
 IMAGE_URI="https://oedownload.blob.core.windows.net/oe-build/ubuntu-base-18.04.3-base-amd64.tar.gz?st=2019-10-25T16%3A53%3A03Z&se=2020-10-26T16%3A53%3A00Z&sp=rl&sv=2018-03-28&sr=b&sig=yOKo%2B7dnDrhc%2F%2FrUpemCeGsQNrN2GdOLmzsYiiQbm6o%3D"
 SIGNATURE_URI="http://cdimage.ubuntu.com/ubuntu-base/releases/18.04/release/SHA256SUMS" 
 
-BOOTSTRAP_DST=${1}
-:${BOOTSTRAP_DST:="./output"}
-
 
 DIR="$( dirname "${BASH_SOURCE[0]}" )"
 pushd Docker
@@ -48,8 +40,7 @@ verify_sum
 rm -rf build
 mkdir -p build
 cp -r ../buildinfo build
-docker rm -f container_build
-docker build -t candidate -f Dockerfile.bootstrap . 
-docker run --name container_build -m 24G --memory-swap=-1 -v ${DESTINATION_BIULD}:/output -it candidate /tmp/build_toolchain.sh
-docker commit container_build candidate
+docker rm -f package_build
+docker build -t package_build -f Dockerfile.pkg . 
+docker run -v /home/brcamp/tmp/src:/output -it package_build /tmp/build_packages.sh
 popd
