@@ -27,9 +27,9 @@ ADD https://oedownload.blob.core.windows.net/oe-build/intel-sgx/libsgx-dcap-ql_1
 # RUN DEBIAN_FRONTEND=noninteractive apt -y dist-upgrade# RUN DEBIAN_FRONTEND=noninteractive apt-get -y install musl musl-dev ninja-build python3 xz-utils libxml2 libgcc-7-dev make git zlib1g zlib1g-dev libreadline-dev libsqlite3-dev libbz2-dev libffi-dev liblzma-dev python-openssl gcc-7 g++-7 gpg libssl-dev dpkg-dev
 
 
-ADD https://oedownload.blob.core.windows.net/oe-build/ubuntu-18.04/secure-build.pkgs.tar.gz?st=2019-12-31T16%3A52%3A31Z&se=2020-01-01T16%3A52%3A31Z&sp=rl&sv=2018-03-28&sr=b&sig=CRWbgt0wXNb1x11DlMdNBf8ZuDv1or60ikjKH7VvW7E%3D /tmp/secure-build.pkgs.tar.gz
+ADD https://oedownload.blob.core.windows.net/oe-build/ubuntu-18.04/secure-build.pkgs.tar.gz?st=2020-01-03T19%3A01%3A31Z&se=2020-01-04T19%3A01%3A31Z&sp=rl&sv=2018-03-28&sr=b&sig=GPMFdDh%2Br8DuAHuZxPgHAv5VyR1vGayWkPU6ZgP99ZY%3D /tmp/secure-build.pkgs.tar.gz
 
-ADD https://oebuildinfo.blob.core.windows.net/buildinfo/secure-build.pkgs.tar.gz.sha256sum?st=2019-12-31T16%3A50%3A48Z&se=2020-01-01T16%3A50%3A48Z&sp=rl&sv=2018-03-28&sr=b&sig=unuFtV7b%2BNUatT0TGaLQwgw4nA19J9fM%2Bc2UmY3MaTA%3D /tmp//secure-build.pkgs.tar.gz.sha256sum
+ADD https://oedownload.blob.core.windows.net/oe-build/ubuntu-18.04/secure-build.pkgs.tar.gz?st=2020-01-03T19%3A02%3A45Z&se=2020-01-04T19%3A02%3A45Z&sp=rl&sv=2018-03-28&sr=c&sig=zR3zmysx%2F8P8aqKAFrofh5tcJ7C8QWEHRd6wWhv6fgs%3D /tmp//secure-build.pkgs.tar.gz.sha256sum
 ADD package-list /tmp
 ADD install-packages.sh /tmp
 

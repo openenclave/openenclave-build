@@ -11,7 +11,7 @@ ADD https://oedownload.blob.core.windows.net/oe-build/intel-sgx/libsgx-enclave-c
 ADD https://oedownload.blob.core.windows.net/oe-build/intel-sgx/libsgx-enclave-common_2.7.100.4-bionic1_amd64.deb?st=2019-10-25T16%3A55%3A41Z&se=2020-10-26T16%3A55%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=nJWY1Q%2FXHkdKRBtfKdjHEbhDZU8zTOZ6Mc0JTjZK2gU%3D /tmp/libsgx-enclave-common+2.7.100.4-bionic_amd64.deb
 ADD https://oedownload.blob.core.windows.net/oe-build/intel-sgx/libsgx-dcap-ql-dev_1.3.101.3-bionic1_amd64.deb?st=2019-10-25T16%3A55%3A41Z&se=2020-10-26T16%3A55%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=nJWY1Q%2FXHkdKRBtfKdjHEbhDZU8zTOZ6Mc0JTjZK2gU%3D /tmp/libsgx-dcap-ql-dev_1.3.101.3-bionic1_amd64.deb
 ADD https://oedownload.blob.core.windows.net/oe-build/intel-sgx/libsgx-dcap-ql_1.3.101.3-bionic1_amd64.deb?st=2019-10-25T16%3A55%3A41Z&se=2020-10-26T16%3A55%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=nJWY1Q%2FXHkdKRBtfKdjHEbhDZU8zTOZ6Mc0JTjZK2gU%3D /tmp/libsgx-dcap-ql_1.3.101.3-bionic1_amd64.deb
-ADD  https://oebuildinfo.blob.core.windows.net/buildinfo/ubuntu-base-18.04.3-base-amd64.tar.gz.sig?st=2019-12-31T17%3A31%3A32Z&se=2020-01-01T17%3A31%3A32Z&sp=rl&sv=2018-03-28&sr=b&sig=QzfJ9g%2FLgL3o38I89Gn3Ecyktrm30vW8SmikPiOTkpE%3D /tmp/ubuntu-base-18.04.3-base-amd64.tar.gz.sig
+ADD  https://oebuildinfo.blob.core.windows.net/buildinfo/ubuntu-base-18.04.3-base-amd64.tar.gz.sig?st=2020-01-03T18%3A52%3A29Z&se=2021-01-04T19%3A40%3A00Z&sp=rl&sv=2018-03-28&sr=b&sig=ud5Slb46gGAbO7eXT2vweyBRzUofVAqHcoH6H5Jys6U%3D /tmp/ubuntu-base-18.04.3-base-amd64.tar.gz.sig
 
 #
 # Check the signature.

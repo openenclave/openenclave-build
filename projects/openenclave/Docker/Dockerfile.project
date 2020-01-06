@@ -14,7 +14,7 @@ FROM candidate
 #
 # Workaround. The image has bogus esy filenames in /tmp
 #
-RUN mv /tmp/eys-0.5.8.tgz  /tmp/esy-0.5.8.tgz
+#RUN mv /tmp/eys-0.5.8.tgz  /tmp/esy-0.5.8.tgz
 RUN mv /tmp/eys-solve-cudf-0.1.10.tgz /tmp/esy-solve-cudf-0.1.10.tgz 
 
 # 2d0: Disable apt
@@ -27,8 +27,8 @@ ADD libsgx-dcap-ql-dev_1.3.101.3-bionic1_amd64.deb /tmp
 ADD build_project.sh /tmp
 
 # Workaround This should be added to the bootstrap image
-RUN apt install libcurl4
-RUN apt install libprotobuf10
+#RUN apt install libcurl4
+#RUN apt install libprotobuf10
 
 # Install libsgx packages
 RUN dpkg -i /tmp/libsgx-enclave-common+2.7.100.4-bionic_amd64.deb

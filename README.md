@@ -175,7 +175,7 @@ Once we have a trusted bootstrap image, we can now use the trusted toolchain to 
 A key feature of the project build is that it does not download anything but source. It may place files or install packages (via dpkg) 
 but it does not download or build anything other than the target project source. The project build may do this because the bootstrap 
 image has pre-placed the files to be installed. Secure build aims to be retargetable to many projects, but the requirements for packages
-in the build environment is limited to a finite list. Currently, the placajge list for the base image is sufficient to build the 
+in the build environment is limited to a finite list. Currently, the package list for the base image is sufficient to build the 
 openenclave SDK. We expect that additional packages required for additional target projects will need to be added over time, but 
 the list will rapidly converge.
 

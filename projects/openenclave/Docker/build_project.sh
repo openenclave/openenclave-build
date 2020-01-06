@@ -9,10 +9,10 @@
 # Use the buildinfo associated with this image
 #/tmp/buildinfo/check_build 
 
-# Install 
-apt install -y libcurl4      # THis should be in the bootstrap image
-apt install -y libprotobuf10 # THis should be in the bootstrap image
-apt install -y doxygen       # THis should be in the bootstrap image
+# Install doxygen. 
+dpkg -i /tmp/deb/libllvm6.0_1%3a6.0-1ubuntu2_amd64.deb
+dpkg -i /tmp/deb/libclang1-6.0_1%3a6.0-1ubuntu2_amd64.deb
+dpkg -i /tmp/deb/doxygen_1.8.13-10_amd64.deb
 
 dpkg -i /tmp/libsgx-enclave-common+2.7.100.4-bionic_amd64.deb
 dpkg -i /tmp/libsgx-enclave-common-dev+2.7.100.4-bionic_amd64.deb
