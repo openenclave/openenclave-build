@@ -16,6 +16,7 @@ FROM candidate
 #
 #RUN mv /tmp/eys-0.5.8.tgz  /tmp/esy-0.5.8.tgz
 RUN mv /tmp/eys-solve-cudf-0.1.10.tgz /tmp/esy-solve-cudf-0.1.10.tgz 
+RUN ln -s /usr/local/bin/clang++ /usr/local/bin/clang++-7 # Need this for openenclave sample tests
 
 # 2d0: Disable apt
 #
