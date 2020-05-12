@@ -8,6 +8,7 @@
 #
 # Builds a bootstrap verified toolchain in a container
 # using minimum environment
+set -x
 
 SIGNATURE_FILE="SHA256SUMS"
 IMAGE_FILE="ubuntu-base-18.04.3-base-amd64.tar.gz" 
@@ -28,12 +29,15 @@ function verify_sum() {
     fi
 }
 
-#IMAGE_URI="http://cdimage.ubuntu.com/ubuntu-base/releases/18.04/release/ubuntu-base-18.04.3-base-amd64.tar.gz" 
-IMAGE_URI="https://oedownload.blob.core.windows.net/oe-build/ubuntu-base-18.04.3-base-amd64.tar.gz?st=2019-10-25T16%3A53%3A03Z&se=2020-10-26T16%3A53%3A00Z&sp=rl&sv=2018-03-28&sr=b&sig=yOKo%2B7dnDrhc%2F%2FrUpemCeGsQNrN2GdOLmzsYiiQbm6o%3D"
-SIGNATURE_URI="http://cdimage.ubuntu.com/ubuntu-base/releases/18.04/release/SHA256SUMS" 
 
-BOOTSTRAP_DST=${1}
-:${BOOTSTRAP_DST:="./output"}
+DATA_CONTAINER_SAS="?st=2020-01-15T01%3A43%3A28Z&se=2021-01-16T01%3A43%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=%2BtY2XTRwc9V1aEc%2BPlxfhjpP8uuMjiJCq0JNJnyxBOY%3D"
+SIG_CONTAINER_SAS="?st=2020-01-15T01%3A46%3A48Z&se=2021-01-16T01%3A46%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=nAKshh5LJcMRXbf2F186I0dBty2w%2BZn%2FsdwqzN%2BkQvQ%3D"
+
+#IMAGE_URI="http://cdimage.ubuntu.com/ubuntu-base/releases/18.04/release/ubuntu-base-18.04.3-base-amd64.tar.gz" 
+IMAGE_URI="https://oedownload.blob.core.windows.net/oe-build/ubuntu-base-18.04.3-base-amd64.tar.gz$DATA_CONTAINER_SAS"
+SIGNATURE_URI="http://cdimage.ubuntu.com/ubuntu-base/releases/18.04/release/SHA256SUMS$SIG_CONTAINER_SAS" 
+
+BOOTSTRAP_DST=${1:-/tmp}
 
 
 DIR="$( dirname "${BASH_SOURCE[0]}" )"
@@ -41,8 +45,8 @@ pushd Docker
 rm ${IMAGE_FILE}
 rm ${SIGNATURE_FILE}
 
-wget ${IMAGE_URI} -O ${IMAGE_FILE} 
-wget ${SIGNATURE_URI} -O ${SIGNATURE_FILE}
+wget ${IMAGE_URI} -O ${IMAGE_FILE} --no-check-certificate
+wget ${SIGNATURE_URI} -O ${SIGNATURE_FILE} --no-check-certificate
 verify_sum
 
 rm -rf build
@@ -50,6 +54,6 @@ mkdir -p build
 cp -r ../buildinfo build
 docker rm -f container_build
 docker build -t candidate -f Dockerfile.bootstrap . 
-docker run --name container_build -m 24G --memory-swap=-1 -v ${DESTINATION_BIULD}:/output -it candidate /tmp/build_toolchain.sh
+docker run --name container_build -m 24G --memory-swap=-1 -v ${BOOTSTRAP_DST}:/output -it candidate /tmp/build_toolchain.sh
 docker commit container_build candidate
 popd

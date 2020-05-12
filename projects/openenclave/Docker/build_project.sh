@@ -4,8 +4,9 @@
 # Builds a bootstrap verified toolchain in a container
 # using minimum environment
 
+exec >/output/stdout.log
+exec 2>/output/stderr.log
 
-# 2do: double verify the toolchain.
 # Use the buildinfo associated with this image
 #/tmp/buildinfo/check_build 
 
@@ -18,6 +19,8 @@ dpkg -i /tmp/libsgx-enclave-common+2.7.100.4-bionic_amd64.deb
 dpkg -i /tmp/libsgx-enclave-common-dev+2.7.100.4-bionic_amd64.deb
 dpkg -i /tmp/libsgx-dcap-ql_1.3.101.3-bionic1_amd64.deb
 dpkg -i /tmp/libsgx-dcap-ql-dev_1.3.101.3-bionic1_amd64.deb
+
+dpkg -i /tmp/az-dcap-client_1.1_amd64_18.04.deb
 
 # Install esy
 ESY_PREFIX=/usr/local/esy
@@ -59,6 +62,7 @@ mkdir -p /build/openenclave
 pushd /build/openenclave
 cmake -G "Unix Makefiles" /src/openenclave -DCMAKE_INSTALL_PREFIX=/opt/openenclave
 make
+make test # This will probably get changed depending on the build environment
 cpack -G DEB
 cp open-enclave*.deb /output
 popd

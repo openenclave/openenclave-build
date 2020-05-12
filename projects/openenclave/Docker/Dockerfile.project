@@ -1,4 +1,5 @@
-FROM candidate
+ARG shasum="sha256:dab666f43508d7bb0e1ff6c961dc2cb37d3d035f7bc03ad10baf59ae2e93dec6"
+FROM localhost:5000/candidate:latest@${shasum}
 #FROM scratch
 
 #ADD secure_build.tar /

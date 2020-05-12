@@ -219,6 +219,7 @@ class BuildInfo:
         liblist  = libpath.split(":")
         # We want to make sure the file in question is on the path list, binary or lib depending
 
+        rslt = False
         for checksum in self.__checksums:
 
             # We fail there is a single false result

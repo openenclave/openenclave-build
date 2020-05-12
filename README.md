@@ -30,6 +30,8 @@ on that image for example:
     using ubuntu-18.04
 ```
 will include the malware. This will be true even after the original malware is detected and removed unless the image is rebuilt.
+This problem can be mitigated by including the container's sha256 digest but that digest isn't generated until the container image 
+has been added to the repo.
 
 #### The development toolchain can be compromised.
 The toolchain itself can be modified to embed malware within the code.  In such a case, all software generated

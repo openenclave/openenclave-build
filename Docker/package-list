@@ -31,8 +31,8 @@ libgdbm-compat4_1.14.1-6_amd64.deb
 perl-modules-5.26_5.26.1-6ubuntu0.3_all.deb
 libperl5.26_5.26.1-6ubuntu0.3_amd64.deb
 perl_5.26.1-6ubuntu0.3_amd64.deb
-linux-libc-dev_4.15.0-72.81_amd64.deb
 libc-dev-bin_2.27-3ubuntu1_amd64.deb
+linux-libc-dev_4.15.0-74.84_amd64.deb
 libc6-dev_2.27-3ubuntu1_amd64.deb
 libsqlite3-0_3.22.0-1ubuntu0.2_amd64.deb
 libsqlite3-dev_3.22.0-1ubuntu0.2_amd64.deb
@@ -165,9 +165,9 @@ shared-mime-info_1.9-2_amd64.deb
 xdg-user-dirs_0.17-1ubuntu1_amd64.deb
 pkg-config_0.29.1-0ubuntu2_amd64.deb
 gdbserver_8.1-0ubuntu3.2_amd64.deb
+libelf1_0.170-0.4ubuntu0.1_amd64.deb
+libdw1_0.170-0.4ubuntu0.1_amd64.deb
 libbabeltrace1_1.5.5-1_amd64.deb
 libc6-dbg_2.27-3ubuntu1_amd64.deb
-libdw1_0.170-0.4ubuntu0.1_amd64.deb
-libelf1_0.170-0.4ubuntu0.1_amd64.deb
 libpython3.6_3.6.9-1~18.04_amd64.deb
 gdb_8.1-0ubuntu3.2_amd64.deb

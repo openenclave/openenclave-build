@@ -1,3 +1,5 @@
+ARG DATA_CONTAINER_SAS="?st=2020-01-15T01%3A43%3A28Z&se=2021-01-16T01%3A43%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=%2BtY2XTRwc9V1aEc%2BPlxfhjpP8uuMjiJCq0JNJnyxBOY%3D"
+ARG SIG_CONTAINER_SAS="?st=2020-01-15T01%3A46%3A48Z&se=2021-01-16T01%3A46%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=nAKshh5LJcMRXbf2F186I0dBty2w%2BZn%2FsdwqzN%2BkQvQ%3D"
 FROM scratch
 
 # The way to get a trusted build is to start with a trusted build. If we don't have one,
@@ -11,6 +13,7 @@ ADD https://oedownload.blob.core.windows.net/oe-build/intel-sgx/libsgx-enclave-c
 ADD https://oedownload.blob.core.windows.net/oe-build/intel-sgx/libsgx-enclave-common_2.7.100.4-bionic1_amd64.deb?st=2019-10-25T16%3A55%3A41Z&se=2020-10-26T16%3A55%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=nJWY1Q%2FXHkdKRBtfKdjHEbhDZU8zTOZ6Mc0JTjZK2gU%3D /tmp/libsgx-enclave-common+2.7.100.4-bionic_amd64.deb
 ADD https://oedownload.blob.core.windows.net/oe-build/intel-sgx/libsgx-dcap-ql-dev_1.3.101.3-bionic1_amd64.deb?st=2019-10-25T16%3A55%3A41Z&se=2020-10-26T16%3A55%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=nJWY1Q%2FXHkdKRBtfKdjHEbhDZU8zTOZ6Mc0JTjZK2gU%3D /tmp/libsgx-dcap-ql-dev_1.3.101.3-bionic1_amd64.deb
 ADD https://oedownload.blob.core.windows.net/oe-build/intel-sgx/libsgx-dcap-ql_1.3.101.3-bionic1_amd64.deb?st=2019-10-25T16%3A55%3A41Z&se=2020-10-26T16%3A55%3A00Z&sp=rl&sv=2018-03-28&sr=c&sig=nJWY1Q%2FXHkdKRBtfKdjHEbhDZU8zTOZ6Mc0JTjZK2gU%3D /tmp/libsgx-dcap-ql_1.3.101.3-bionic1_amd64.deb
+ADD https://oedownload.blob.core.windows.net/oe-build/ubuntu-18.04/az-dcap-client_1.1_amd64_18.04.deb${DATA_CONTAINER_SAS}  /tmp/az-dcap-client_1.1_amd64_18.04.deb
 #ADD https://oebuildinfo.blob.core.windows.net/buildinfo/ubuntu-base-18.04.3-base-amd64.tar.gz.sig
 
 #
@@ -27,16 +30,17 @@ ADD https://oedownload.blob.core.windows.net/oe-build/intel-sgx/libsgx-dcap-ql_1
 # RUN DEBIAN_FRONTEND=noninteractive apt -y dist-upgrade# RUN DEBIAN_FRONTEND=noninteractive apt-get -y install musl musl-dev ninja-build python3 xz-utils libxml2 libgcc-7-dev make git zlib1g zlib1g-dev libreadline-dev libsqlite3-dev libbz2-dev libffi-dev liblzma-dev python-openssl gcc-7 g++-7 gpg libssl-dev dpkg-dev
 
 
-ADD https://oedownload.blob.core.windows.net/oe-build/ubuntu-18.04/secure-build.pkgs.tar.gz?st=2020-01-03T19%3A01%3A31Z&se=2020-01-04T19%3A01%3A31Z&sp=rl&sv=2018-03-28&sr=b&sig=GPMFdDh%2Br8DuAHuZxPgHAv5VyR1vGayWkPU6ZgP99ZY%3D /tmp/secure-build.pkgs.tar.gz
-
-ADD https://oedownload.blob.core.windows.net/oe-build/ubuntu-18.04/secure-build.pkgs.tar.gz?st=2020-01-03T19%3A02%3A45Z&se=2020-01-04T19%3A02%3A45Z&sp=rl&sv=2018-03-28&sr=c&sig=zR3zmysx%2F8P8aqKAFrofh5tcJ7C8QWEHRd6wWhv6fgs%3D /tmp//secure-build.pkgs.tar.gz.sha256sum
+ADD "https://oedownload.blob.core.windows.net/oe-build/ubuntu-18.04/secure-build.pkgs.tar.gz$DATA_CONTAINER_SAS" /tmp/secure-build.pkgs.tar.gz
+ADD "https://oebuildinfo.blob.core.windows.net/buildinfo/secure-build.pkgs.tar.gz.sha256sum$SIG_CONTAINER_SAS" /tmp/secure-build.pkgs.tar.gz.sha256sum
 ADD package-list /tmp
 ADD install-packages.sh /tmp
 
 #
-# dpkg can result in some unresolved dependencies. dpkg --configure should resolve them
 WORKDIR /tmp
-RUN /bin/bash -c "mkdir -p deb && pushd deb &&  tar xvfz /tmp/secure-build.pkgs.tar.gz && popd && /tmp/install-packages.sh /tmp/package-list /tmp/deb"
+# Need to use a script and a package-lsit file to characterise the dependencies.
+RUN /bin/bash -c "mkdir -p deb && pushd deb && \
+      tar xvfz /tmp/secure-build.pkgs.tar.gz && popd && \
+     /tmp/install-packages.sh /tmp/package-list /tmp/deb"
 
 
 RUN /bin/bash -c "ln -sf /usr/bin/gcc-7 /usr/bin/gcc ; ln -sf /usr/bin/g++-7 /usr/bin/g++"
@@ -53,15 +57,6 @@ COPY pkglist.base/ /tmp
 
 RUN rm -rf /usr/local ; mkdir -p /usr/local
 
-#
-#Unpack the golden cmake
-#RUN tar xvfz cmake-3.15.1-Linux-x86_64.tar.gz
-#RUN /bin/bash -c "\
-#    pushd . ;\
-#    cd cmake-3.15.1-Linux-x86_64 ; \
-#    cp -Rf * /usr/local/ ; \
-#    popd \
-#    "
 ENV PATH=/usr/local/bin:/bin:/sbin:/usr/bin
 
 #
