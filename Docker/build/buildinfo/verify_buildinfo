@@ -1,0 +1,17 @@
+#!/usr/local/bin/python3.9
+from BuildInfo import BuildInfo
+import pdb
+import os
+
+if __name__ == "__main__":
+    f = open("/build/secure-build.buildinfo", "r")
+    buf = f.readlines()
+
+    info = BuildInfo.from_str(buf)
+    if not info.verify(os.environ['PATH'], os.environ['LD_LIBRARY_PATH']):
+        print("build not verified")
+        pdb.set_trace()
+    else:
+        print("build is verified")
+        return 0
+
