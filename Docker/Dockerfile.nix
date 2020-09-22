@@ -5,105 +5,114 @@ FROM $BASE_IMAGE
 # we need to use untrusted components to perform the build, then rebuild with the provisionally trusted components, 
 # then compare. If we get different contents, we don't know where the problem is, but we would know there is a problem.
 
-# this can't come from a URL because it won't get unpacked. 
-# We need a tight secure CDN to hold golden images. 
-#
-# Check the signature.
 
 RUN apt-get update \
-        && apt-get install -y curl python3 perl git \
+        && apt-get install -y curl python3 perl git vim \
         && mkdir -p /nix /etc/nix \
         && chmod a+rwx /nix \
         && echo 'sandbox = false' > /etc/nix/nix.conf \
         && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /output
+RUN mkdir -p /output/build
+RUN chmod -R 777 /output
+RUN mkdir -p /opt/openenclave
+RUN chmod -R 777 /opt/openenclave
+
+ARG BUILD_USER=brcamp
+ARG BUILD_USER_ID=2738
+ARG BUILD_USER_HOME=/home/brcamp
+
 #add a user for Nix
-RUN adduser user --home /home/user --disabled-password --gecos "" --shell /bin/bash
+RUN echo "adduser $BUILD_USER --uid $BUILD_USER_ID --home $BUILD_USER_HOME"
+RUN adduser $BUILD_USER --uid $BUILD_USER_ID --home $BUILD_USER_HOME --disabled-password --gecos "" --shell /bin/bash
+RUN addgroup nixbld 
+RUN adduser $BUILD_USER  nixbld
+ENV USER=$BUILD_USER
+USER $BUILD_USER
 CMD /bin/bash -l
-USER user
-ENV USER user
-WORKDIR /home/user
+WORKDIR /home/$BUILD_USER
 # 
 #create the shell config
-RUN echo "{ pkgs ? import <nixpkgs> {} }: \n\
+RUN echo "{ pkgs ? import <nixpkgs> {} }:  \n\
+\n\
 with pkgs; \n\
+\tstdenvNoCC.mkDerivation {  \n\
+\t\tname = \"openenclave-sdk\";  \n\
+\t\tbuildInputs = with pkgs;  [  \n\
+\t\t	pkgs.openssl \n\
+\t\t	pkgs.cmake \n\
+\t\t	pkgs.llvm \n\
+\t\t	pkgs.clang \n\
+\t\t    pkgs.python3 \n\
+\t\t    pkgs.doxygen \n\
+\t\t];  \n\
+\t\tsrc = fetchFromGitHub { \n\
+\t\t              owner = \"openenclave\";\n\
+\t\t              repo = \"openenclave\";\n\
+\t\t              rev  = \"0acfb9ad86709b861da42b55fee670e3f4dd661c\"; \n\
+\t\t              sha256 = \"0xhq0lvhjrdss3p2kbdx3gg8m4a6rd16d75x30c8gjrs8l02g033\"; \n\
+\t\t              fetchSubmodules = true; \n\
+\t\t        }; \n\
+\t\t    CC = \"clang\";\n\
+\t\t    CXX = \"clang++\";\n\
+\t\t    LD = \"ld.lld\";\n\
+\t\t    CFLAGS=\"-Wno-unused-command-line-argument -Wl,-I/lib64/ld-linux-x86-64.so.2\" ;\n\
+\t\t    CXXFLAGS=\"-Wno-unused-command-line-argument -Wl,-I/lib64/ld-linux-x86-64.so.2\";\n\
+\t\t    LDFLAGS=\"-I/lib64/ld-linux-x86-64.so.2\" ;\n\
+\t\t    NIX_ENFORCE_PURITY="0"; \n\
+\t\t configurePhase = '' \n\
+\t\t        chmod -R a+rw \$src \n\
+\t\t        mkdir -p \$out \n\
+\t\t        cd /output/build \n\
+\t\t        cmake -G \"Unix Makefiles\" \$src -DCMAKE_BUILD_TYPE=RelWithDebInfo  \n\
+\t\t    ''; \n\
+\t\t     \n\
+\t\t buildPhase = '' \n\
+\t\t        make VERBOSE=1 \n\
+\t\t        cpack -G DEB \n\
+\t\t    ''; \n\
 \n\
-stdenvNoCC.mkDerivation { \n\
-\tname = \"oe-build-nix\"; \n\
-\tbuildInputs = [ \n\
-\t\t/nix/store/idj0yrdlk8x49f3gyl4sb8divwhfgjvp-libtool-2.4.6 \n\
-\t\t/nix/store/68yb6ams241kf5pjyxiwd7a98xxcbx0r-ocaml-4.06.1 \n\
-\t\t/nix/store/ncqmw9iybd6iwxd4yk1x57gvs76k1sq4-ocamlbuild-0.12.0 \n\
-\t\t/nix/store/9dkhfaw1qsmvw4rv1z1fqgwhfpbdqrn0-file-5.35 \n\
-\t\t/nix/store/vs700jsqx2465qr0x78zcmgiii0890n3-cmake-3.15.5 \n\
-\t\t/nix/store/d0fv0g4vcv4s0ysa81pn9sf6fy4zzjcv-gnum4-1.4.18 \n\
-\t\t/nix/store/ljvpvjh36h9x2aaqzaby5clclq4mgdmc-openssl-1.1.1b \n\
-\t\t/nix/store/0klr6d4k2g0kabkamfivg185wpx8biqv-openssl-1.1.1b-dev \n\
-\t\t/nix/store/yg76yir7rkxkfz6p77w4vjasi3cgc0q6-gnumake-4.2.1 \n\
-\t\t/nix/store/1kl6ms8x56iyhylb2r83lq7j3jbnix7w-binutils-2.31.1 \n\
-\t\t/nix/store/dmxxhhl5yr92pbl17q1szvx34jcbzsy8-texinfo-6.5 \n\
-\t\t/nix/store/g6c80c9s2hmrk7jmkp9przi83jpcs8c6-bison-3.5.4 \n\
-\t\t/nix/store/qh2ppjlz4yq65cl0vs0m2h57x2cjlwm4-flex-2.6.4 \n\
-\t\t/nix/store/6a6ilqysgz1gwfs0ahriw94q35vj84sy-vim-8.2.1123 \n\
-\t\t/nix/store/z2709nq2dfbmq710dyf8ykjwsj3zk3ld-libffi-3.3 \n\
-\t\t/nix/store/86832i5kfv4yyzj9y442ryl4l1s4wrwj-libpfm-4.10.1 \n\
-\t\t/nix/store/fhsjz6advdlwa9lki291ra7s5aays9f9-libxml2-2.9.10 \n\
-\t\t/nix/store/ki8k1a2pkpf862pxa0pms0j9mwjcb2xd-zlib-1.2.11-dev \n\
-\t\t/nix/store/rcn31jcz3ppnv28hjyq7m2hwy4dqc2jb-clang-7.1.0-lib \n\
-\t\t/nix/store/sc35z1gh4y58n2p0rz9psi33scwh4nv2-llvm-7.1.0 \n\
-\t\t/nix/store/8inh7bv9hnyjdmrviimmwcw4vr8c6pji-llvm-binutils-7.1.0 \n\
-\t\t/nix/store/jzgz21bgily2g8j8nnx04zv5y69rld6f-clang-7.1.0 \n\
-\t\t/nix/store/0iz74aawxl3gfyqkxygy43bw9zzl0jkb-musl-1.2.0-dev \n\
-\t\t/nix/store/pvr7va4221w3fyya7lm6cxh5601fbdsa-valgrind-3.16.1-dev \n\
-\t\t/nix/store/q13zmpbw9pmx32pcxjc9wr7c6qsk1nkl-valgrind-3.16.1-doc \n\
-\t\t/nix/store/sn9i6iigyp58r4w7556c8p36xlm6hr2m-valgrind-3.16.1 \n\
-\t\t/nix/store/spah9k7ald89hwhngg3zmvx6kqlbq218-doxygen-1.8.19 \n\
-\t]; \n\
-\n\
-\tshellHook = '' \n\
-\techo \"OpenEnclave build enviroment\" \n\
-\t''; \n\
-} \n\
-" > /home/user/shell.nix
+\t\t installPhase = '' \n\
+\t\t        #make VERBOSE=1 \n\
+\t\t       cd /output/build \n\
+\t\t       tar cf - . | ( cd \$out; tar xvf - ) \n\
+\t\t    ''; \n\
+\t\t\n\
+\t\t fixupPhase = '' \n\
+\t\t       #cp -r /output/build \$out \n\
+\t\t    ''; \n\
+\t\t\n\
+\t\t     shellHook = '' \n\
+\t\t          echo \"Shell Hook\" \n\
+\t\t     #rm -rf /output/build \n\
+\t\t     #rm -rf /output/srcdir\n\
+\t\t     #mkdir /output/srcdir \n\
+\t\t     #cd /output/srcdir \n\
+\t\t   #  git clone --recurse-submodules https://github.com/openenclave/openenclave.git \n\
+\t\t     #mkdir /output/build \n\
+\t\t     #cd /output/build \n\
+\t\t    # cmake -G \"Unix Makefiles\" /output/srcdir/openenclave -DCMAKE_BUILD_TYPE=RelWithDebInfo  \n\
+\t\t    ''; \n\
+}  \n\
+" > /home/$BUILD_USER/shell.nix
 
+
+
+RUN echo "User is $USER "
 #install the required software
-RUN touch .bash_profile \
-&& curl https://nixos.org/releases/nix/nix-2.2.1/install | sh \
-&& . /home/user/.nix-profile/etc/profile.d/nix.sh \
-&& nix-env -i /nix/store/idj0yrdlk8x49f3gyl4sb8divwhfgjvp-libtool-2.4.6 \
-&& nix-env -i /nix/store/68yb6ams241kf5pjyxiwd7a98xxcbx0r-ocaml-4.06.1 \
-&& nix-env -i /nix/store/ncqmw9iybd6iwxd4yk1x57gvs76k1sq4-ocamlbuild-0.12.0 \
-&& nix-env -i /nix/store/9dkhfaw1qsmvw4rv1z1fqgwhfpbdqrn0-file-5.35 \
-&& nix-env -i /nix/store/vs700jsqx2465qr0x78zcmgiii0890n3-cmake-3.15.5 \
-&& nix-env -i /nix/store/d0fv0g4vcv4s0ysa81pn9sf6fy4zzjcv-gnum4-1.4.18 \
-&& nix-env -i /nix/store/ljvpvjh36h9x2aaqzaby5clclq4mgdmc-openssl-1.1.1b \
-&& nix-env -i /nix/store/0klr6d4k2g0kabkamfivg185wpx8biqv-openssl-1.1.1b-dev \
-&& nix-env -i /nix/store/yg76yir7rkxkfz6p77w4vjasi3cgc0q6-gnumake-4.2.1 \
-&& nix-env -i /nix/store/1kl6ms8x56iyhylb2r83lq7j3jbnix7w-binutils-2.31.1 \
-&& nix-env --set-flag priority 10 binutils-2.31.1 \
-&& nix-env -i /nix/store/dmxxhhl5yr92pbl17q1szvx34jcbzsy8-texinfo-6.5 \
-&& nix-env -i /nix/store/g6c80c9s2hmrk7jmkp9przi83jpcs8c6-bison-3.5.4 \
-&& nix-env -i /nix/store/qh2ppjlz4yq65cl0vs0m2h57x2cjlwm4-flex-2.6.4 \
-&& nix-env -i /nix/store/6a6ilqysgz1gwfs0ahriw94q35vj84sy-vim-8.2.1123 \
-&& nix-env -i /nix/store/z2709nq2dfbmq710dyf8ykjwsj3zk3ld-libffi-3.3 \
-&& nix-env -i /nix/store/86832i5kfv4yyzj9y442ryl4l1s4wrwj-libpfm-4.10.1 \
-&& nix-env -i /nix/store/fhsjz6advdlwa9lki291ra7s5aays9f9-libxml2-2.9.10 \
-&& nix-env -i /nix/store/ki8k1a2pkpf862pxa0pms0j9mwjcb2xd-zlib-1.2.11-dev \
-&& nix-env -i /nix/store/rcn31jcz3ppnv28hjyq7m2hwy4dqc2jb-clang-7.1.0-lib \
-&& nix-env -i /nix/store/sc35z1gh4y58n2p0rz9psi33scwh4nv2-llvm-7.1.0 \
-&& nix-env --set-flag priority 10 llvm-7.1.0  \
-&& nix-env -i /nix/store/8inh7bv9hnyjdmrviimmwcw4vr8c6pji-llvm-binutils-7.1.0 \
-&& nix-env -i /nix/store/0iz74aawxl3gfyqkxygy43bw9zzl0jkb-musl-1.2.0-dev \
-&& nix-env -i /nix/store/jzgz21bgily2g8j8nnx04zv5y69rld6f-clang-7.1.0 \
-&& nix-env -i  /nix/store/pvr7va4221w3fyya7lm6cxh5601fbdsa-valgrind-3.16.1-dev \
-&& nix-env -i  /nix/store/q13zmpbw9pmx32pcxjc9wr7c6qsk1nkl-valgrind-3.16.1-doc \
-&& nix-env -i  /nix/store/sn9i6iigyp58r4w7556c8p36xlm6hr2m-valgrind-3.16.1 \
-&& nix-env -i  /nix/store/g4ihsbcnxgsdy4h05s7iiwxcjjydpsyj-python3-3.9.0b5 \
-&& nix-env -i /nix/store/spah9k7ald89hwhngg3zmvx6kqlbq218-doxygen-1.8.19
+#RUN touch .bash_profile \
+#
+# We add the nix install and packages into the container rather than waiting for run time.
+# The packages are then located in the nix store until the next push of the container
+RUN curl https://nixos.org/releases/nix/nix-2.3.7/install | /bin/bash
+ADD ./prep-nix-build.sh /home/$BUILD_USER
+RUN /bin/bash ./prep-nix-build.sh /home/$BUILD_USER
 
-
+ADD ./nix-build.sh /home/$BUILD_USER
+ADD libsgx_enclave_common.so /usr/lib/x86_64-linux-gnu
+ADD libsgx_enclave_common.so.1 /usr/lib/x86_64-linux-gnu
 
 #config nix-shell
-RUN . /home/user/.nix-profile/etc/profile.d/nix.sh \
-&& nix-shell
+#CMD . /home/$BUILD_USER/.nix-profile/etc/profile.d/nix.sh \
+#&& nix-shell shell.nix
