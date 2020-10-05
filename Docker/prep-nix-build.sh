@@ -26,12 +26,15 @@ then
     pushd ${NIX_PKGS} ; git pull ; git checkout ${NIX_PKGS_BRANCH} ; popd
 else
     git clone https://github.com/yakman2020/nixpkgs.git ${NIX_PKGS}
+    pushd ${NIX_PKGS} ; git pull ; git checkout ${NIX_PKGS_BRANCH} ; popd
 fi
 
 # Install the packages 
 
 set -x
-source ~/.nix-profile/etc/profile.d/nix.sh \
+source ~/.nix-profile/etc/profile.d/nix.sh 
+nix-channel --remove nixpkgs # Only get packages from nixstore
+export NIX_PATH=$NIX_PKGS/..
 nix-env -f ${NIX_PKGS} -i /nix/store/70y1dj79fq7f6486y8clrgngrcfr303q-cmake-3.18.2
 nix-env -f ${NIX_PKGS} -i /nix/store/aqafh2kgahm2hv3nkihmgnvsg7y4ihcj-openssl-1.1.1g
 nix-env -f ${NIX_PKGS} -i /nix/store/yg76yir7rkxkfz6p77w4vjasi3cgc0q6-gnumake-4.2.1 
@@ -59,6 +62,6 @@ nix-env -f ${NIX_PKGS} -i /nix/store/spah9k7ald89hwhngg3zmvx6kqlbq218-doxygen-1.
 
 #
 # Make sure we don't go to cache by checking everything
-nix-store -f ${NIX_PKGS} --check
+nix-store -f ${NIX_PKGS} --verify
 
 set +x

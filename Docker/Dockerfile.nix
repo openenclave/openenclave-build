@@ -19,9 +19,12 @@ RUN chmod -R 777 /output
 RUN mkdir -p /opt/openenclave
 RUN chmod -R 777 /opt/openenclave
 
-ARG BUILD_USER=brcamp
-ARG BUILD_USER_ID=2738
-ARG BUILD_USER_HOME=/home/brcamp
+#
+# We alklow overriding these settings, but if one does, the build user and id must match or else the .deb tars won't have 
+# a reproducible signature, since tar entries include user and group ownerships.
+ARG BUILD_USER=azureuser
+ARG BUILD_USER_ID=1000
+ARG BUILD_USER_HOME=/home/azureuser
 
 #add a user for Nix
 RUN echo "adduser $BUILD_USER --uid $BUILD_USER_ID --home $BUILD_USER_HOME"
