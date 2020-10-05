@@ -15,10 +15,10 @@
 #
 export NIX_PKGS_REPO=https://github.com/yakman2020/nixpkgs.git
 
-#export NIX_PKGS=$1
-export NIX_PKGS=~/nixpkgs
+export NIX_PKGS=$1
+#export NIX_PKGS=/home/azureuser/nixpkgs
 
-export NIX_PKGS_BRANCH=origin/release-20.09
+export NIX_PKGS_BRANCH=release-20.09
 
 if [ -d ${NIX_PKGS} ]
 then
@@ -32,7 +32,7 @@ fi
 # Install the packages 
 
 set -x
-source ~/.nix-profile/etc/profile.d/nix.sh 
+source /home/azureuser/.nix-profile/etc/profile.d/nix.sh 
 nix-channel --remove nixpkgs # Only get packages from nixstore
 export NIX_PATH=$NIX_PKGS/..
 nix-env -f ${NIX_PKGS} -i /nix/store/70y1dj79fq7f6486y8clrgngrcfr303q-cmake-3.18.2

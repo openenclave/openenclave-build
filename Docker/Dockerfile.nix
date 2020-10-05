@@ -110,7 +110,7 @@ RUN echo "User is $USER "
 # The packages are then located in the nix store until the next push of the container
 RUN curl https://nixos.org/releases/nix/nix-2.3.7/install | /bin/bash
 ADD ./prep-nix-build.sh /home/$BUILD_USER
-RUN /bin/bash ./prep-nix-build.sh /home/$BUILD_USER
+RUN /bin/bash ./prep-nix-build.sh /home/$BUILD_USER/nixpkgs
 
 ADD ./nix-build.sh /home/$BUILD_USER
 ADD libsgx_enclave_common.so /usr/lib/x86_64-linux-gnu
