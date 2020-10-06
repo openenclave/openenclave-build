@@ -8,5 +8,4 @@ export BUILD_USER=azureuser
 export BUILD_USER_ID=1000
 export BUILD_USER_HOME=/home/azureuser
 
-
 docker build -f Dockerfile.nix --build-arg BUILD_USER=$BUILD_USER --build-arg BUILD_USER_ID=$BUILD_USER_ID --build-arg BUILD_USER_HOME=$BUILD_USER_HOME --no-cache . -t openenclave-build

@@ -10,7 +10,7 @@ RUN apt-get update \
         && apt-get install -y curl python3 perl git vim \
         && mkdir -p /nix /etc/nix \
         && chmod a+rwx /nix \
-        && echo 'sandbox = false' > /etc/nix/nix.conf \
+        && echo 'sandbox = false\nkeep-derivations = true\nkeep-env-derivations = true' > /etc/nix/nix.conf \
         && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /output
@@ -67,7 +67,7 @@ with pkgs; \n\
 \t\t configurePhase = '' \n\
 \t\t        chmod -R a+rw \$src \n\
 \t\t        mkdir -p \$out \n\
-\t\t        cd /output/build \n\
+\t\t        cd \$out \n\
 \t\t        cmake -G \"Unix Makefiles\" \$src -DCMAKE_BUILD_TYPE=RelWithDebInfo  \n\
 \t\t    ''; \n\
 \t\t     \n\
@@ -78,8 +78,8 @@ with pkgs; \n\
 \n\
 \t\t installPhase = '' \n\
 \t\t        #make VERBOSE=1 \n\
-\t\t       cd /output/build \n\
-\t\t       tar cf - . | ( cd \$out; tar xvf - ) \n\
+\t\t       cd \$out \n\
+\t\t       tar cf - . | ( cd /output/build; tar xvf - ) \n\
 \t\t    ''; \n\
 \t\t\n\
 \t\t fixupPhase = '' \n\
@@ -112,6 +112,7 @@ RUN curl https://nixos.org/releases/nix/nix-2.3.7/install | /bin/bash
 ADD ./prep-nix-build.sh /home/$BUILD_USER
 RUN /bin/bash ./prep-nix-build.sh /home/$BUILD_USER/nixpkgs
 
+ADD ./sort_deb_sum.sh /home/$BUILD_USER
 ADD ./nix-build.sh /home/$BUILD_USER
 ADD libsgx_enclave_common.so /usr/lib/x86_64-linux-gnu
 ADD libsgx_enclave_common.so.1 /usr/lib/x86_64-linux-gnu
