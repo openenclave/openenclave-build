@@ -75,9 +75,10 @@ with pkgs; \n\
 \t\t buildPhase = '' \n\
 \t\t        make VERBOSE=1 \n\
 \t\t        cpack -G DEB \n\
-\t\t        pkgname=\$(ls openenclave*.deb) \n\
+\t\t        pkgname=\$(ls open-enclave*.deb) \n\
 \t\t        echo \$pkgname\n\
-\t\t        $BUILD_USER_HOME/sort_deb_sum.sh open-enclave*.deb \n\
+\t\t        $BUILD_USER_HOME/sort_deb_sum.sh $pkgname \n\
+\t\t        mv $pkgname.sorted $pkgname \n\
 \t\t    ''; \n\
 \n\
 \t\t installPhase = '' \n\
