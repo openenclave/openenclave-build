@@ -49,6 +49,7 @@ with pkgs; \n\
 \t\t	pkgs.clang \n\
 \t\t    pkgs.python3 \n\
 \t\t    pkgs.doxygen \n\
+\t\t    pkgs.dpkg \n\
 \t\t];  \n\
 \t\tsrc = fetchFromGitHub { \n\
 \t\t              owner = \"openenclave\";\n\
@@ -74,6 +75,8 @@ with pkgs; \n\
 \t\t buildPhase = '' \n\
 \t\t        make VERBOSE=1 \n\
 \t\t        cpack -G DEB \n\
+\t\t        pkgname=\$(ls openenclave*.deb) \n\
+\t\t        echo \$pkgname\n\
 \t\t        $BUILD_USER_HOME/sort_deb_sum.sh open-enclave*.deb \n\
 \t\t    ''; \n\
 \n\

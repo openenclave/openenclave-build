@@ -84,6 +84,8 @@ nix-instantiate -I. -E '(import <nixpkgs> {}).python3'
 nix-env -I. -i  /nix/store/7qhg8hc7ycq5x2cs5jlg8s3fag0sbg1x-python3-3.8.5.drv
 nix-instantiate -I. -E '(import <nixpkgs> {}).doxygen'
 nix-env -I. -i /nix/store/rp9hgwjng1v0dks12y8bk27fndkck62b-doxygen-1.8.19.drv
+nix-env -I. -i /nix/store/xic28d0cmcxv08wmh539xqq09vnajdar-dpkg-1.19.7
+
 
 #
 # Make sure we don't go to cache by checking everything
