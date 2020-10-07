@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source ~/.nix-profile/etc/profile.d/nix.sh
+#source ~/.nix-profile/etc/profile.d/nix.sh
 
 #
 # We remove the package build.
