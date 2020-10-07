@@ -7,7 +7,7 @@ FROM $BASE_IMAGE
 
 
 RUN apt-get update \
-        && apt-get install -y curl python3 perl git vim \
+        && apt-get install -y curl python3 perl git vim dpkg \
         && mkdir -p /nix /etc/nix \
         && chmod a+rwx /nix \
         && echo 'sandbox = false\nkeep-derivations = true\nkeep-env-derivations = true' > /etc/nix/nix.conf \
@@ -74,12 +74,12 @@ with pkgs; \n\
 \t\t buildPhase = '' \n\
 \t\t        make VERBOSE=1 \n\
 \t\t        cpack -G DEB \n\
+\t\t        $BUILD_USER_HOME/sort_deb_sum.sh open-enclave*.deb \n\
 \t\t    ''; \n\
 \n\
 \t\t installPhase = '' \n\
 \t\t        #make VERBOSE=1 \n\
-\t\t       cd \$out \n\
-\t\t       tar cf - . | ( cd /output/build; tar xvf - ) \n\
+\t\t       cp -r \$out/* /output/build \n\
 \t\t    ''; \n\
 \t\t\n\
 \t\t fixupPhase = '' \n\

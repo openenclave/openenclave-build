@@ -54,7 +54,11 @@ else
 fi
 
 # Then sort md5sums. It is in a random order and that ruins reproducibility
+# This is slightly more specialised because we must preserve the original timestamp
+# tar file entries have a user/group/timestamp block and if that changes the sha256sum 
+# is altered.
 sort md5sums >t
+touch -r md5sums t  # applies md5sums timestamp to t
 mv t md5sums
 
 # now put together in reverse order
@@ -67,7 +71,7 @@ else
 fi
 popd
 
-if ar r ${deb_file_name}.sorted control.tar.gz data.tar.gz
+if ar r ${deb_file_name}.sorted control.tar.gz data.tar.gz debian-binary
 then
    echo "---- re-archive ${deb_file_name}" 
 else
