@@ -1,11 +1,16 @@
+# Copyright (c) Open Enclave SDK contributors.
+# Licensed under the MIT License.
+# 
 ARG BASE_IMAGE="ubuntu@sha256:31dfb10d52ce76c5ca0aa19d10b3e6424b830729e32a89a7c6eee2cda2be67a5"
 FROM $BASE_IMAGE
 
-# The way to get a trusted build is to start with a trusted build. If we don't have one,
-# we need to use untrusted components to perform the build, then rebuild with the provisionally trusted components, 
-# then compare. If we get different contents, we don't know where the problem is, but we would know there is a problem.
-
-
+#
+# Build container to produce reproducible nix derivation and .deb package of the OpenEnclave SDK
+# 
+# Uses nix package manager to wrap the standard build process.
+#
+# 
+#
 RUN apt-get update \
         && apt-get install -y curl python3 perl git vim dpkg \
         && mkdir -p /nix /etc/nix \
@@ -25,6 +30,9 @@ RUN chmod -R 777 /opt/openenclave
 ARG BUILD_USER=azureuser
 ARG BUILD_USER_ID=1000
 ARG BUILD_USER_HOME=/home/azureuser
+
+# This will exclude oegdb, samples, and report 
+ARG TEST_EXCLUSIONS="-E samples\|oegdb-test\|report"
 
 #add a user for Nix
 RUN echo "adduser $BUILD_USER --uid $BUILD_USER_ID --home $BUILD_USER_HOME"
@@ -65,6 +73,7 @@ with pkgs; \n\
 \t\t    CXXFLAGS=\"-Wno-unused-command-line-argument -Wl,-I/lib64/ld-linux-x86-64.so.2\";\n\
 \t\t    LDFLAGS=\"-I/lib64/ld-linux-x86-64.so.2\" ;\n\
 \t\t    NIX_ENFORCE_PURITY="0"; \n\
+\t\t    doCheck = true; \
 \t\t configurePhase = '' \n\
 \t\t        chmod -R a+rw \$src \n\
 \t\t        mkdir -p \$out \n\
@@ -80,14 +89,16 @@ with pkgs; \n\
 \t\t        $BUILD_USER_HOME/sort_deb_sum.sh \$pkgname \n\
 \t\t        mv \$pkgname.sorted \$pkgname \n\
 \t\t    ''; \n\
+\t\t checkPhase = '' \n\
+\t\t        echo \"ctest $TEST_EXCLUSIONS\" \n\
+\t\t        ctest $TEST_EXCLUSIONS \n\
+\t\t    ''; \n\
 \n\
 \t\t installPhase = '' \n\
-\t\t        #make VERBOSE=1 \n\
 \t\t       cp -r \$out/* /output/build \n\
 \t\t    ''; \n\
 \t\t\n\
 \t\t fixupPhase = '' \n\
-\t\t       #cp -r /output/build \$out \n\
 \t\t    ''; \n\
 \t\t\n\
 \t\t     shellHook = '' \n\

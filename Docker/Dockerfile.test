@@ -1,0 +1,29 @@
+# Copyright (c) Open Enclave SDK contributors.
+# Licensed under the MIT License.
+# 
+ARG BASE_IMAGE="ubuntu@sha256:31dfb10d52ce76c5ca0aa19d10b3e6424b830729e32a89a7c6eee2cda2be67a5"
+FROM $BASE_IMAGE
+
+#
+# Build container to test openenclave sdk packages
+# 
+#
+RUN apt-get update \
+        && apt-get install -y curl python3 perl git vim
+
+RUN mkdir -p /output
+RUN mkdir -p /output/build
+RUN chmod -R 777 /output
+RUN mkdir -p /opt/openenclave
+RUN chmod -R 777 /opt/openenclave
+
+#
+# We alklow overriding these settings, but if one does, the build user and id must match or else the .deb tars won't have 
+# a reproducible signature, since tar entries include user and group ownerships.
+ARG BUILD_USER=azureuser
+ARG BUILD_USER_ID=1000
+ARG BUILD_USER_HOME=/home/azureuser
+
+ADD libsgx_enclave_common.so /usr/lib/x86_64-linux-gnu
+ADD libsgx_enclave_common.so.1 /usr/lib/x86_64-linux-gnu
+
