@@ -33,6 +33,7 @@ ARG BUILD_USER_HOME=/home/azureuser
 
 # This will exclude oegdb, samples, and report 
 ARG TEST_EXCLUSIONS="-E samples\|oegdb-test\|report"
+ARG DO_CHECK="false"
 
 #add a user for Nix
 RUN echo "adduser $BUILD_USER --uid $BUILD_USER_ID --home $BUILD_USER_HOME"
@@ -73,7 +74,7 @@ with pkgs; \n\
 \t\t    CXXFLAGS=\"-Wno-unused-command-line-argument -Wl,-I/lib64/ld-linux-x86-64.so.2\";\n\
 \t\t    LDFLAGS=\"-I/lib64/ld-linux-x86-64.so.2\" ;\n\
 \t\t    NIX_ENFORCE_PURITY="0"; \n\
-\t\t    doCheck = true; \
+\t\t    doCheck = $DO_CHECK; \
 \t\t configurePhase = '' \n\
 \t\t        chmod -R a+rw \$src \n\
 \t\t        mkdir -p \$out \n\
@@ -82,7 +83,7 @@ with pkgs; \n\
 \t\t    ''; \n\
 \t\t     \n\
 \t\t buildPhase = '' \n\
-\t\t        make VERBOSE=1 \n\
+\t\t        make VERBOSE=1 -j 4 \n\
 \t\t        cpack -G DEB \n\
 \t\t        pkgname=\$(ls open-enclave*.deb) \n\
 \t\t        echo \$pkgname\n\
