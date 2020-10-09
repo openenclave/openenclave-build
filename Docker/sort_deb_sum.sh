@@ -71,7 +71,7 @@ else
 fi
 popd
 
-if ar r ${deb_file_name}.sorted control.tar.gz data.tar.gz debian-binary
+if ar r ${deb_file_name}.sorted debian-binary control.tar.gz data.tar.gz
 then
    echo "---- re-archive ${deb_file_name}" 
 else
