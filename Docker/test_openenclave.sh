@@ -17,30 +17,6 @@ else
     SGX_DEVICE=""
 fi
 
-if [ -h  /output ]
-then
-    echo "link /output found" 
-elif [ -d /output ]
-then
-    echo "directory /output found" 
-else
-    # ALERT: Maybe we should have an arg here to define a dir to link to rather than
-    # root level directory. But this is simple and provides the /output directory
-    # we need the same paths on the host and container to be able to run tests.
-
-    echo "making directory /output"
-    sudo mkdir /output
-    sudo chmod 777 /output
-fi
-
-if [ -d /output/build ]
-then
-    rm -rf /output/build/*
-else
-    mkdir -p /output/build
-    chmod 777 /output/build
-fi
-
 #nix-store --delete $(nix-store --dump-db | grep openenclave)
 # We start with no nix store and add what we use. We do not share with others
 
