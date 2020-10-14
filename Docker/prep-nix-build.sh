@@ -59,33 +59,25 @@ nix-instantiate -I. -E '(import <nixpkgs> {}).cmake'
 nix-env -I. -i /nix/store/n7384b19nw1l0mnqzii6d7dg50jnkijd-cmake-3.18.2.drv
 nix-instantiate -I. -E '(import <nixpkgs> {}).openssl'
 nix-env -I. -i /nix/store/7abnxss4gz9r4ykrwiiw9paiprwcmlzn-openssl-1.1.1g.drv
-nix-env -I. -i /nix/store/yg76yir7rkxkfz6p77w4vjasi3cgc0q6-gnumake-4.2.1 
-nix-env -I. -i /nix/store/1kl6ms8x56iyhylb2r83lq7j3jbnix7w-binutils-2.31.1 
+nix-instantiate -I. -E '(import <nixpkgs> {}).gnumake'
+nix-env -I. -i /nix/store/jg96nngpqyd6ajcqm5jfjz6gv3gfcdq2-gnumake-4.3.drv
+nix-instantiate -I. -E '(import <nixpkgs> {}).binutils'
+nix-env -I. -i /nix/store/ixj2lbxy9mhjw9l554cczl36m4k7af0v-binutils-wrapper-2.31.1.drv
 nix-env -I. --set-flag priority 5 binutils-2.31.1 
-nix-env -I. -i /nix/store/dmxxhhl5yr92pbl17q1szvx34jcbzsy8-texinfo-6.5 
-nix-env -I. -i /nix/store/g6c80c9s2hmrk7jmkp9przi83jpcs8c6-bison-3.5.4 
-nix-env -I. -i /nix/store/qh2ppjlz4yq65cl0vs0m2h57x2cjlwm4-flex-2.6.4 
-nix-env -I. -i /nix/store/6a6ilqysgz1gwfs0ahriw94q35vj84sy-vim-8.2.1123 
-nix-env -I. -i /nix/store/z2709nq2dfbmq710dyf8ykjwsj3zk3ld-libffi-3.3 
-nix-env -I. -i /nix/store/86832i5kfv4yyzj9y442ryl4l1s4wrwj-libpfm-4.10.1 
-nix-env -I. -i /nix/store/fhsjz6advdlwa9lki291ra7s5aays9f9-libxml2-2.9.10 
-nix-env -I. -i /nix/store/ki8k1a2pkpf862pxa0pms0j9mwjcb2xd-zlib-1.2.11-dev 
 nix-instantiate -I. -E '(import <nixpkgs> {}).llvm'
 nix-env -I. -i /nix/store/p93jc9z2910k2m69fgmqmlvj0w6k060g-llvm-7.1.0.drv
 nix-env -I. --set-flag priority 10 llvm
-nix-env -I. -i /nix/store/0iz74aawxl3gfyqkxygy43bw9zzl0jkb-musl-1.2.0-dev 
 nix-instantiate -I. -E '(import <nixpkgs> {}).clang'
 nix-env -I. -i /nix/store/abxsiydw99wlnaq5c800f3xxky86f45z-clang-7.1.0.drv
 nix-env -I. --set-flag priority 20 clang
-nix-env -I. -i  /nix/store/pvr7va4221w3fyya7lm6cxh5601fbdsa-valgrind-3.16.1-dev 
-nix-env -I. -i  /nix/store/q13zmpbw9pmx32pcxjc9wr7c6qsk1nkl-valgrind-3.16.1-doc 
-nix-env -I. -i  /nix/store/sn9i6iigyp58r4w7556c8p36xlm6hr2m-valgrind-3.16.1 
 nix-instantiate -I. -E '(import <nixpkgs> {}).python3'
 nix-env -I. -i  /nix/store/7qhg8hc7ycq5x2cs5jlg8s3fag0sbg1x-python3-3.8.5.drv
 nix-instantiate -I. -E '(import <nixpkgs> {}).doxygen'
 nix-env -I. -i /nix/store/rp9hgwjng1v0dks12y8bk27fndkck62b-doxygen-1.8.19.drv
-nix-env -I. -i /nix/store/xic28d0cmcxv08wmh539xqq09vnajdar-dpkg-1.19.7
-
+nix-instantiate -I. -E '(import <nixpkgs> {}).dpkg'
+nix-env -I. -i /nix/store/yk7v269xb05hvybw75c66jpfqvlfy3b8-dpkg-1.20.5.drv
+# for debug only
+nix-env -I. -i /nix/store/6a6ilqysgz1gwfs0ahriw94q35vj84sy-vim-8.2.1123 
 
 #
 # Make sure we don't go to cache by checking everything
