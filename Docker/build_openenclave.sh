@@ -7,6 +7,7 @@
 # nix-build has no idea of forcing a rebuild
 # 
 
+set -x
 if [ -d /dev/sgx ]
 then 
     SGX_DEVICE="--device /dev/sgx/enclave:/dev/sgx/enclave  --device /dev/sgx/provision:/dev/sgx/provision"
@@ -14,7 +15,7 @@ elif [ -c /dev/isgx ]
 then
     SGX_DEVICE="--device /dev/isgx:/dev/isgx"
 else
-    SGX_DEVICE=""
+    SGX_DEVICE="-e OE_SIMULATION=1"
 fi
 
 if [ -h  /output ]
@@ -53,3 +54,4 @@ LDFLAGS="-I/lib64/ld-linux-x86-64.so.2"
 
 #docker run -it ${SGX_DEVICE} -v /nix:/nix -v /output:/output openenclave-build # /bin/bash nix-build.sh 
 docker run -it ${SGX_DEVICE} -v /output:/output openenclave-build # /bin/bash nix-build.sh 
+set +x

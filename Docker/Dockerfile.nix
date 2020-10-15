@@ -76,6 +76,10 @@ with pkgs; \n\
 \t\t    NIX_ENFORCE_PURITY="0"; \n\
 \t\t    doCheck = $DO_CHECK; \
 \t\t configurePhase = '' \n\
+\t\t        if ! [ -c \"dev/isgx\" ] && ! [ -d \"/dev/sgx\" ] \n\
+\t\t        then \n\
+\t\t           export OE_SIMULATION=1 \n\
+\t\t        fi \n\
 \t\t        chmod -R a+rw \$src \n\
 \t\t        mkdir -p \$out \n\
 \t\t        cd \$out \n\
@@ -83,6 +87,7 @@ with pkgs; \n\
 \t\t    ''; \n\
 \t\t     \n\
 \t\t buildPhase = '' \n\
+\t\t        echo \$OE_SIMULATION \n\
 \t\t        make VERBOSE=1 -j 4 \n\
 \t\t        cpack -G DEB \n\
 \t\t        pkgname=\$(ls open-enclave*.deb) \n\
