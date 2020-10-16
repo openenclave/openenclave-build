@@ -25,7 +25,7 @@ RUN mkdir -p /opt/openenclave
 RUN chmod -R 777 /opt/openenclave
 
 #
-# We alklow overriding these settings, but if one does, the build user and id must match or else the .deb tars won't have 
+# We allow overriding these settings, but if one does, the build user and id must match or else the .deb tars won't have 
 # a reproducible signature, since tar entries include user and group ownerships.
 ARG BUILD_USER=azureuser
 ARG BUILD_USER_ID=1000
@@ -46,7 +46,11 @@ CMD /bin/bash -l
 WORKDIR /home/$BUILD_USER
 # 
 #create the shell config
-RUN echo "{ pkgs ? import <nixpkgs> {} }:  \n\
+RUN echo "{ pkgs ? import <nixpkgs> {} \n\
+    ,  REV  ? \"UNDEFINED\" \n\
+    ,  SHA  ? \"UNDEFINED\" \n\
+    ,  DO_CHECK  ? false \n\
+    }:   \n\
 \n\
 with pkgs; \n\
 \tstdenvNoCC.mkDerivation {  \n\
@@ -63,8 +67,8 @@ with pkgs; \n\
 \t\tsrc = fetchFromGitHub { \n\
 \t\t              owner = \"openenclave\";\n\
 \t\t              repo = \"openenclave\";\n\
-\t\t              rev  = \"0acfb9ad86709b861da42b55fee670e3f4dd661c\"; \n\
-\t\t              sha256 = \"0xhq0lvhjrdss3p2kbdx3gg8m4a6rd16d75x30c8gjrs8l02g033\"; \n\
+\t\t              rev  = REV; \n\
+\t\t              sha256 = SHA; \n\
 \t\t              fetchSubmodules = true; \n\
 \t\t        }; \n\
 \t\t    CC = \"clang\";\n\
@@ -74,7 +78,7 @@ with pkgs; \n\
 \t\t    CXXFLAGS=\"-Wno-unused-command-line-argument -Wl,-I/lib64/ld-linux-x86-64.so.2\";\n\
 \t\t    LDFLAGS=\"-I/lib64/ld-linux-x86-64.so.2\" ;\n\
 \t\t    NIX_ENFORCE_PURITY="0"; \n\
-\t\t    doCheck = $DO_CHECK; \
+\t\t    doCheck = DO_CHECK; \
 \t\t configurePhase = '' \n\
 \t\t        if ! [ -c \"dev/isgx\" ] && ! [ -d \"/dev/sgx\" ] \n\
 \t\t        then \n\
