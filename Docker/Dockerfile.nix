@@ -47,16 +47,16 @@ WORKDIR /home/$BUILD_USER
 # 
 #create the shell config
 RUN echo "{ pkgs ? import <nixpkgs> {} \n\
-    ,  REV  ? \"UNDEFINED\" \n\
-    ,  SHA  ? \"UNDEFINED\" \n\
+    ,  REV  ? \"HEAD\" \n\
+    ,  SHA  ? \"0000000000000000000000000000000000000000000000000000\" \n\
     ,  DO_CHECK  ? false \n\
+    ,  OE_SIM ? \"\"  \n\
     }:   \n\
 \n\
 with pkgs; \n\
 \tstdenvNoCC.mkDerivation {  \n\
 \t\tname = \"openenclave-sdk\";  \n\
-\t\tbuildInputs = with pkgs;  [  \n\
-\t\t	pkgs.openssl \n\
+\t\tnativeBuildInputs = with pkgs;  [  \n\
 \t\t	pkgs.cmake \n\
 \t\t	pkgs.llvm \n\
 \t\t	pkgs.clang \n\
@@ -64,6 +64,8 @@ with pkgs; \n\
 \t\t    pkgs.doxygen \n\
 \t\t    pkgs.dpkg \n\
 \t\t];  \n\
+\t\t# Only one actual import to the package. Everything else is a build tool \n\
+\t\tbuildInputs = with pkgs;  [ pkgs.openssl ];  \n\
 \t\tsrc = fetchFromGitHub { \n\
 \t\t              owner = \"openenclave\";\n\
 \t\t              repo = \"openenclave\";\n\
@@ -78,16 +80,12 @@ with pkgs; \n\
 \t\t    CXXFLAGS=\"-Wno-unused-command-line-argument -Wl,-I/lib64/ld-linux-x86-64.so.2\";\n\
 \t\t    LDFLAGS=\"-I/lib64/ld-linux-x86-64.so.2\" ;\n\
 \t\t    NIX_ENFORCE_PURITY="0"; \n\
-\t\t    doCheck = DO_CHECK; \
+\t\t    doCheck = DO_CHECK; \n\
 \t\t configurePhase = '' \n\
-\t\t        if ! [ -c \"dev/isgx\" ] && ! [ -d \"/dev/sgx\" ] \n\
-\t\t        then \n\
-\t\t           export OE_SIMULATION=1 \n\
-\t\t        fi \n\
 \t\t        chmod -R a+rw \$src \n\
 \t\t        mkdir -p \$out \n\
 \t\t        cd \$out \n\
-\t\t        cmake -G \"Unix Makefiles\" \$src -DCMAKE_BUILD_TYPE=RelWithDebInfo  \n\
+\t\t        OE_SIM cmake -G \"Unix Makefiles\" \$src -DCMAKE_BUILD_TYPE=RelWithDebInfo  \n\
 \t\t    ''; \n\
 \t\t     \n\
 \t\t buildPhase = '' \n\
@@ -101,7 +99,7 @@ with pkgs; \n\
 \t\t    ''; \n\
 \t\t checkPhase = '' \n\
 \t\t        echo \"ctest $TEST_EXCLUSIONS\" \n\
-\t\t        ctest $TEST_EXCLUSIONS \n\
+\t\t        OE_SIM ctest $TEST_EXCLUSIONS \n\
 \t\t    ''; \n\
 \n\
 \t\t installPhase = '' \n\
@@ -139,6 +137,7 @@ RUN /bin/bash ./prep-nix-build.sh /home/$BUILD_USER/nixpkgs
 
 ADD ./sort_deb_sum.sh /home/$BUILD_USER
 ADD ./nix-build.sh /home/$BUILD_USER
+ADD ./nix-shell.sh /home/$BUILD_USER
 ADD libsgx_enclave_common.so /usr/lib/x86_64-linux-gnu
 ADD libsgx_enclave_common.so.1 /usr/lib/x86_64-linux-gnu
 

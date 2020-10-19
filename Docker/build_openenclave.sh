@@ -52,6 +52,5 @@ CFLAGS="-Wno-unused-command-line-argument -Wl,-I/lib64/ld-linux-x86-64.so.2"
 CXXFLAGS="-Wno-unused-command-line-argument -Wl,-I/lib64/ld-linux-x86-64.so.2"
 LDFLAGS="-I/lib64/ld-linux-x86-64.so.2"
 
-#docker run -it ${SGX_DEVICE} -v /nix:/nix -v /output:/output openenclave-build # /bin/bash nix-build.sh 
 docker run -it ${SGX_DEVICE} -v /output:/output --env-file ./build.env openenclave-build # /bin/bash nix-build.sh 
 set +x
