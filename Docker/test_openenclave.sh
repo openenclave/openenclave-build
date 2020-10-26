@@ -14,7 +14,7 @@ elif [ -c /dev/isgx ]
 then
     SGX_DEVICE="--device /dev/isgx:/dev/isgx"
 else
-    SGX_DEVICE=""
+    SGX_DEVICE="-e OE_SIMULATION=1"
 fi
 
 #nix-store --delete $(nix-store --dump-db | grep openenclave)

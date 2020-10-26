@@ -66,6 +66,7 @@ with pkgs; \n\
 \t\t];  \n\
 \t\t# Only one actual import to the package. Everything else is a build tool \n\
 \t\tbuildInputs = with pkgs;  [ pkgs.openssl ];  \n\
+\t\tcheckInputs = with pkgs;  [ pkgs.strace pkgs.gdb ];  \n\
 \t\tsrc = fetchFromGitHub { \n\
 \t\t              owner = \"openenclave\";\n\
 \t\t              repo = \"openenclave\";\n\
@@ -85,7 +86,7 @@ with pkgs; \n\
 \t\t        chmod -R a+rw \$src \n\
 \t\t        mkdir -p \$out \n\
 \t\t        cd \$out \n\
-\t\t        OE_SIM cmake -G \"Unix Makefiles\" \$src -DCMAKE_BUILD_TYPE=RelWithDebInfo  \n\
+\t\t        \$OE_SIM cmake -G \"Unix Makefiles\" \$src -DCMAKE_BUILD_TYPE=RelWithDebInfo  \n\
 \t\t    ''; \n\
 \t\t     \n\
 \t\t buildPhase = '' \n\
@@ -99,7 +100,7 @@ with pkgs; \n\
 \t\t    ''; \n\
 \t\t checkPhase = '' \n\
 \t\t        echo \"ctest $TEST_EXCLUSIONS\" \n\
-\t\t        OE_SIM ctest $TEST_EXCLUSIONS \n\
+\t\t        LD_LIBRARY_PATH=/home/$BUILD_USER/.nix_libs \$OE_SIM ctest $TEST_EXCLUSIONS \n\
 \t\t    ''; \n\
 \n\
 \t\t installPhase = '' \n\
@@ -138,8 +139,11 @@ RUN /bin/bash ./prep-nix-build.sh /home/$BUILD_USER/nixpkgs
 ADD ./sort_deb_sum.sh /home/$BUILD_USER
 ADD ./nix-build.sh /home/$BUILD_USER
 ADD ./nix-shell.sh /home/$BUILD_USER
-ADD libsgx_enclave_common.so /usr/lib/x86_64-linux-gnu
-ADD libsgx_enclave_common.so.1 /usr/lib/x86_64-linux-gnu
+RUN mkdir -p /home/$BUILD_USER/.nix_libs
+ADD libsgx_enclave_common.so /home/$BUILD_USER/.nix_libs
+ADD libsgx_enclave_common.so.1 /home/$BUILD_USER/.nix_libs
+ADD libsgx_launch.so.1  /home/$BUILD_USER/.nix_libs
+ADD libprotobuf.so.22  /home/$BUILD_USER/.nix_libs
 
 #config nix-shell
 #CMD . /home/$BUILD_USER/.nix-profile/etc/profile.d/nix.sh \

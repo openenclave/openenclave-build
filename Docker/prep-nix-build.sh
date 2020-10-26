@@ -19,6 +19,7 @@ export NIX_PKGS=$1
 #export NIX_PKGS=/home/azureuser/nixpkgs
 
 export NIX_PKGS_BRANCH=release-20.09
+#export NIX_PKGS_BRANCH=acc-test
 
 if [ -d ${NIX_PKGS} ]
 then
