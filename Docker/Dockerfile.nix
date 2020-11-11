@@ -1,7 +1,7 @@
 # Copyright (c) Open Enclave SDK contributors.
 # Licensed under the MIT License.
 # 
-ARG BASE_IMAGE="ubuntu@sha256:31dfb10d52ce76c5ca0aa19d10b3e6424b830729e32a89a7c6eee2cda2be67a5"
+ARG BASE_IMAGE="ubuntu:18.04"
 FROM $BASE_IMAGE
 
 #
@@ -23,6 +23,7 @@ RUN mkdir -p /output/build
 RUN chmod -R 777 /output
 RUN mkdir -p /opt/openenclave
 RUN chmod -R 777 /opt/openenclave
+ENV ARCH=$(arch)
 
 #
 # We allow overriding these settings, but if one does, the build user and id must match or else the .deb tars won't have 
@@ -51,6 +52,7 @@ RUN echo "{ pkgs ? import <nixpkgs> {} \n\
     ,  SHA  ? \"0000000000000000000000000000000000000000000000000000\" \n\
     ,  DO_CHECK  ? false \n\
     ,  OE_SIM ? \"\"  \n\
+    ,  LD_INTERPRETER ? \"/lib64/ld-linux-x86-64.so.2\" \n\
     }:   \n\
 \n\
 with pkgs; \n\
@@ -58,8 +60,8 @@ with pkgs; \n\
 \t\tname = \"openenclave-sdk\";  \n\
 \t\tnativeBuildInputs = with pkgs;  [  \n\
 \t\t	pkgs.cmake \n\
-\t\t	pkgs.llvm \n\
-\t\t	pkgs.clang \n\
+\t\t	pkgs.llvm_7 \n\
+\t\t	pkgs.clang_7 \n\
 \t\t    pkgs.python3 \n\
 \t\t    pkgs.doxygen \n\
 \t\t    pkgs.dpkg \n\
@@ -77,9 +79,9 @@ with pkgs; \n\
 \t\t    CC = \"clang\";\n\
 \t\t    CXX = \"clang++\";\n\
 \t\t    LD = \"ld.lld\";\n\
-\t\t    CFLAGS=\"-Wno-unused-command-line-argument -Wl,-I/lib64/ld-linux-x86-64.so.2\" ;\n\
-\t\t    CXXFLAGS=\"-Wno-unused-command-line-argument -Wl,-I/lib64/ld-linux-x86-64.so.2\";\n\
-\t\t    LDFLAGS=\"-I/lib64/ld-linux-x86-64.so.2\" ;\n\
+\t\t    CFLAGS=\"-Wno-unused-command-line-argument -Wl,-ILD_INTERPRETER\";\n\
+\t\t    CXXFLAGS=\"-Wno-unused-command-line-argument -Wl,-ILD_INTERPRETER\";\n\
+\t\t    LDFLAGS=\"-ILD_INTERPRETER\" ;\n\
 \t\t    NIX_ENFORCE_PURITY="0"; \n\
 \t\t    doCheck = DO_CHECK; \n\
 \t\t configurePhase = '' \n\
@@ -112,14 +114,6 @@ with pkgs; \n\
 \t\t\n\
 \t\t     shellHook = '' \n\
 \t\t          echo \"Shell Hook\" \n\
-\t\t     #rm -rf /output/build \n\
-\t\t     #rm -rf /output/srcdir\n\
-\t\t     #mkdir /output/srcdir \n\
-\t\t     #cd /output/srcdir \n\
-\t\t   #  git clone --recurse-submodules https://github.com/openenclave/openenclave.git \n\
-\t\t     #mkdir /output/build \n\
-\t\t     #cd /output/build \n\
-\t\t    # cmake -G \"Unix Makefiles\" /output/srcdir/openenclave -DCMAKE_BUILD_TYPE=RelWithDebInfo  \n\
 \t\t    ''; \n\
 }  \n\
 " > /home/$BUILD_USER/shell.nix
@@ -132,9 +126,11 @@ RUN echo "User is $USER "
 #
 # We add the nix install and packages into the container rather than waiting for run time.
 # The packages are then located in the nix store until the next push of the container
-RUN curl https://nixos.org/releases/nix/nix-2.3.7/install | /bin/bash
-ADD ./prep-nix-build.sh /home/$BUILD_USER
-RUN /bin/bash ./prep-nix-build.sh /home/$BUILD_USER/nixpkgs
+#RUN curl https://nixos.org/releases/nix/nix-2.3.7/install | /bin/bash
+ADD ./install-nix.sh /home/$BUILD_USER
+RUN  /bin/bash /home/$BUILD_USER/install-nix.sh
+#ADD ./prep-nix-build.sh /home/$BUILD_USER
+#RUN /bin/bash ./prep-nix-build.sh /home/$BUILD_USER/nixpkgs
 
 ADD ./sort_deb_sum.sh /home/$BUILD_USER
 ADD ./nix-build.sh /home/$BUILD_USER
