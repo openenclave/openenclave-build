@@ -16,10 +16,8 @@
 export NIX_PKGS_REPO=https://github.com/yakman2020/nixpkgs.git
 
 export NIX_PKGS=$1
-#export NIX_PKGS=/home/azureuser/nixpkgs
 
-export NIX_PKGS_BRANCH=release-20.09
-#export NIX_PKGS_BRANCH=acc-test
+export NIX_PKGS_BRANCH=acc-test2
 
 if [ -d ${NIX_PKGS} ]
 then

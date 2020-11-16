@@ -12,7 +12,7 @@ FROM $BASE_IMAGE
 # 
 #
 RUN apt-get update \
-        && apt-get install -y curl python3 perl git vim dpkg \
+        && apt-get install -y curl python3 perl git vim dpkg patchelf \
         && mkdir -p /nix /etc/nix \
         && chmod a+rwx /nix \
         && echo 'sandbox = false\nkeep-derivations = true\nkeep-env-derivations = true' > /etc/nix/nix.conf \
@@ -52,69 +52,109 @@ RUN echo "{ pkgs ? import <nixpkgs> {} \n\
     ,  SHA  ? \"0000000000000000000000000000000000000000000000000000\" \n\
     ,  DO_CHECK  ? false \n\
     ,  OE_SIM ? \"\"  \n\
-    ,  LD_INTERPRETER ? \"/lib64/ld-linux-x86-64.so.2\" \n\
+    ,  INTERACTIVE_SHELL ? false\n\
+    ,  DEB_PACKAGE ? false\n\
     }:   \n\
 \n\
 with pkgs; \n\
-\tstdenvNoCC.mkDerivation {  \n\
-\t\tname = \"openenclave-sdk\";  \n\
-\t\tnativeBuildInputs = with pkgs;  [  \n\
-\t\t	pkgs.cmake \n\
-\t\t	pkgs.llvm_7 \n\
-\t\t	pkgs.clang_7 \n\
-\t\t    pkgs.python3 \n\
-\t\t    pkgs.doxygen \n\
-\t\t    pkgs.dpkg \n\
-\t\t];  \n\
-\t\t# Only one actual import to the package. Everything else is a build tool \n\
-\t\tbuildInputs = with pkgs;  [ pkgs.openssl ];  \n\
-\t\tcheckInputs = with pkgs;  [ pkgs.strace pkgs.gdb ];  \n\
-\t\tsrc = fetchFromGitHub { \n\
-\t\t              owner = \"openenclave\";\n\
-\t\t              repo = \"openenclave\";\n\
-\t\t              rev  = REV; \n\
-\t\t              sha256 = SHA; \n\
-\t\t              fetchSubmodules = true; \n\
-\t\t        }; \n\
-\t\t    CC = \"clang\";\n\
-\t\t    CXX = \"clang++\";\n\
-\t\t    LD = \"ld.lld\";\n\
-\t\t    CFLAGS=\"-Wno-unused-command-line-argument -Wl,-ILD_INTERPRETER\";\n\
-\t\t    CXXFLAGS=\"-Wno-unused-command-line-argument -Wl,-ILD_INTERPRETER\";\n\
-\t\t    LDFLAGS=\"-ILD_INTERPRETER\" ;\n\
-\t\t    NIX_ENFORCE_PURITY="0"; \n\
-\t\t    doCheck = DO_CHECK; \n\
-\t\t configurePhase = '' \n\
-\t\t        chmod -R a+rw \$src \n\
-\t\t        mkdir -p \$out \n\
-\t\t        cd \$out \n\
-\t\t        \$OE_SIM cmake -G \"Unix Makefiles\" \$src -DCMAKE_BUILD_TYPE=RelWithDebInfo  \n\
-\t\t    ''; \n\
-\t\t     \n\
-\t\t buildPhase = '' \n\
-\t\t        echo \$OE_SIMULATION \n\
-\t\t        make VERBOSE=1 -j 4 \n\
-\t\t        cpack -G DEB \n\
-\t\t        pkgname=\$(ls open-enclave*.deb) \n\
-\t\t        echo \$pkgname\n\
-\t\t        $BUILD_USER_HOME/sort_deb_sum.sh \$pkgname \n\
-\t\t        mv \$pkgname.sorted \$pkgname \n\
-\t\t    ''; \n\
-\t\t checkPhase = '' \n\
-\t\t        echo \"ctest $TEST_EXCLUSIONS\" \n\
-\t\t        LD_LIBRARY_PATH=/home/$BUILD_USER/.nix_libs \$OE_SIM ctest $TEST_EXCLUSIONS \n\
-\t\t    ''; \n\
+    stdenvNoCC.mkDerivation {  \n\
+        name = \"openenclave-sdk\";  \n\
+        nativeBuildInputs = with pkgs;  [  \n\
+        	pkgs.cmake \n\
+        	pkgs.llvm_7 \n\
+        	pkgs.clang_7 \n\
+            pkgs.python3 \n\
+            pkgs.doxygen \n\
+            pkgs.dpkg \n\
+        ];  \n\
+        buildInputs = with pkgs;  [ pkgs.openssl ];  \n\
+        checkInputs = with pkgs;  [ pkgs.strace pkgs.gdb ];  \n\
+        src = fetchFromGitHub { \n\
+                      owner = \"openenclave\";\n\
+                      repo = \"openenclave\";\n\
+                      rev  = REV; \n\
+                      sha256 = SHA; \n\
+                      fetchSubmodules = true; \n\
+                }; \n\
+  \n\
+        CC = \"clang\";\n\
+        CXX = \"clang++\";\n\
+        LD = \"ld.lld\";\n\
+        CFLAGS=\"-Wno-unused-command-line-argument\";\n\
+        CXXFLAGS=\"-Wno-unused-command-line-argument\";\n\
+        NIX_ENFORCE_PURITY=0; \n\
+        NIX_ENFORCE_NO_NATIVE=0; \n\
+        doCheck = false; \n\
+        dontStrip = true;\n\
+        dontPatchELF = true;\n\
+        doFixup = false;\n\
+        configurePhase = '' \n\
+                chmod -R a+rw \$src \n\
+                mkdir -p \$out \n\
+                cd \$out \n\
+                \$OE_SIM cmake -G \"Unix Makefiles\" \$src -DCMAKE_BUILD_TYPE=RelWithDebInfo  \n\
+            ''; \n\
+  \n\
+        buildPhase = '' \n\
+                echo \$OE_SIMULATION \n\
+                make VERBOSE=1 -j 4 \n\
+            ''; \n\
+        checkPhase = '' \n\
+                echo \"ctest -E samples\|oegdb-test\|report\" \n\
+                find ./tests -type d -exec chmod a+w {} \;\n\
+                LD_LIBRARY_PATH=/home/azureuser/.nix_libs \$OE_SIM ctest -E samples\|oegdb-test\|report \n\
+            ''; \n\
 \n\
-\t\t installPhase = '' \n\
-\t\t       cp -r \$out/* /output/build \n\
-\t\t    ''; \n\
-\t\t\n\
-\t\t fixupPhase = '' \n\
-\t\t    ''; \n\
-\t\t\n\
-\t\t     shellHook = '' \n\
-\t\t          echo \"Shell Hook\" \n\
-\t\t    ''; \n\
+        installPhase = '' \n\
+                rm -rf /output/build\n\
+                cp -rf \$out/* /output/build \n\
+            ''; \n\
+\n\
+        fixupPhase = '' \n\
+            ''; \n\
+        \n\
+        shellHook = '' \n\
+\n\
+                cd \$out\n\
+                chmod -Rf a+w .\n\
+\n\
+                echo \"=== ctest -E samples\|oegdb-test\|report\" \n\
+                if \$DO_CHECK\n\
+                then \n\
+                    find ./tests -type d -exec chmod a+w {} \;\n\
+\n\
+                    LD_LIBRARY_PATH=/home/azureuser/.nix_libs \$OE_SIM ctest -E samples\|oegdb-test\|report \n\
+                    CTEST_RESULT=\$?\n\
+                    if \$CTEST_RESULT\n\
+                    then\n\
+                        echo \"ERROR: Ctests failed\"\n\
+                        exit \$CTEST_RESULT\n\
+                    fi\n\
+                fi\n\
+\n\
+                if [ \$(uname -m) == \"aarch64\" ]\n\
+                then \n\
+                    LD_INTERPRETER=\"/lib/aarch64-linux-gnu/ld-linux-aarch64.so.1\"\n\
+                elif [ \$(uname -m) == \"x86_64\" ]\n\
+                then\n\
+                    LD_INTERPRETER=\"/lib64/ld-linux-x86-64.so.2\"\n\
+                else\n\
+                    LD_INTERPRETER=\"UNSUPPORTED ARCHITECTURE\"\n\
+                fi\n\
+                echo \"=== FIXUP \$LD_INTERPRETER\"\n\
+                find \$out -type f -executable -exec patchelf --set-interpreter \$LD_INTERPRETER {} \;\n\
+                find \$out -type f -executable -exec patchelf --remove-rpath {} \;\n\
+\n\
+                if \$DEB_PACKAGE\n\
+                then\n\
+                    /home/azureuser/build_deb_pkg.sh\n\
+                fi\n\
+                if \$INTERACTIVE_SHELL\n\
+                then\n\
+                    echo \"=== Complete\"\n\
+                    exit 0\n\
+                fi \n\
+            '';  \n\
 }  \n\
 " > /home/$BUILD_USER/shell.nix
 
@@ -129,12 +169,14 @@ RUN echo "User is $USER "
 #RUN curl https://nixos.org/releases/nix/nix-2.3.7/install | /bin/bash
 ADD ./install-nix.sh /home/$BUILD_USER
 RUN  /bin/bash /home/$BUILD_USER/install-nix.sh
-#ADD ./prep-nix-build.sh /home/$BUILD_USER
-#RUN /bin/bash ./prep-nix-build.sh /home/$BUILD_USER/nixpkgs
+ENV NIX_PATH=/home/$BUILD_USER
+ADD ./prep-nix-build.sh /home/$BUILD_USER
+RUN /bin/bash ./prep-nix-build.sh /home/$BUILD_USER/nixpkgs
 
 ADD ./sort_deb_sum.sh /home/$BUILD_USER
 ADD ./nix-build.sh /home/$BUILD_USER
 ADD ./nix-shell.sh /home/$BUILD_USER
+ADD ./build_deb_pkg.sh /home/$BUILD_USER
 RUN mkdir -p /home/$BUILD_USER/.nix_libs
 ADD libsgx_enclave_common.so /home/$BUILD_USER/.nix_libs
 ADD libsgx_enclave_common.so.1 /home/$BUILD_USER/.nix_libs
