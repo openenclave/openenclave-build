@@ -1,7 +1,7 @@
 # Copyright (c) Open Enclave SDK contributors.
 # Licensed under the MIT License.
 # 
-ARG BASE_IMAGE="ubuntu:18.04"
+ARG BASE_IMAGE="ubuntu:20.04"
 FROM $BASE_IMAGE
 
 #
@@ -178,11 +178,8 @@ ADD ./nix-build.sh /home/$BUILD_USER
 ADD ./nix-shell.sh /home/$BUILD_USER
 ADD ./build_deb_pkg.sh /home/$BUILD_USER
 RUN mkdir -p /home/$BUILD_USER/.nix_libs
-ADD libsgx_enclave_common.so /home/$BUILD_USER/.nix_libs
-ADD libsgx_enclave_common.so.1 /home/$BUILD_USER/.nix_libs
-ADD libsgx_launch.so.1  /home/$BUILD_USER/.nix_libs
-ADD libprotobuf.so.22  /home/$BUILD_USER/.nix_libs
-
-#config nix-shell
-#CMD . /home/$BUILD_USER/.nix-profile/etc/profile.d/nix.sh \
-#&& nix-shell shell.nix
+ADD ./nix-libs/libsgx_enclave_common.so /home/$BUILD_USER/.nix_libs
+ADD ./nix-libs/libsgx_enclave_common.so.1 /home/$BUILD_USER/.nix_libs
+ADD ./nix-libs/libsgx_launch.so.1  /home/$BUILD_USER/.nix_libs
+ADD ./nix-libs/libprotobuf.so.22  /home/$BUILD_USER/.nix_libs
+ADD ./nix-libs/libstdc++.so.6  /home/$BUILD_USER/.nix_libs
