@@ -70,26 +70,26 @@ popd
 if [ $(uname -m) == "aarch64" ]
 then
     nix-instantiate -I. -E '(import <nixpkgs> {}).cmake'
-    nix-env -I. -i /nix/store/047v12wmp690plcdis7sl1wd1ld93d65-cmake-3.18.2.drv
+    nix-env -I. -i /nix/store/p34s8yj3ws6289xa30z4gf7yy5933g4l-cmake-3.16.3.drv
     nix-instantiate -I. -E '(import <nixpkgs> {}).openssl'
-    nix-env -I. -i /nix/store/q39l31qniyh1m0zw7g91rk3jhkls3bvr-openssl-1.1.1g.drv
+    nix-env -I. -i /nix/store/mddaj30wwqyfg3pvid3q7zmhsr3mjnp4-openssl-1.1.1g.drv!bin
     nix-instantiate -I. -E '(import <nixpkgs> {}).gnumake'
-    nix-env -I. -i /nix/store/fg6zzd42ajnvqra7nbqw5zr401r7r7pl-gnumake-4.3.drv
+    nix-env -I. -i /nix/store/34k6saz5kl8j0945b28s00kxhyx3y10p-gnumake-4.2.1.drv
     nix-instantiate -I. -E '(import <nixpkgs> {}).binutils'
-    nix-env -I. -i /nix/store/7rcz35k11kf8an8sy7lwv50i71xcrn21-binutils-wrapper-2.31.1.drv
+    nix-env -I. -i /nix/store/k2kiqgagj53mq9hv6m0rx9dihsdpyd0w-binutils-wrapper-2.31.1.drv
     nix-env -I. --set-flag priority 5 binutils-2.31.1 
     nix-instantiate -I. -E '(import <nixpkgs> {}).llvm_7'
-    nix-env -I. -i /nix/store/snrf2vxc48nw1r8j35m5lq1sxclvxwfh-llvm-7.1.0.drv
+    nix-env -I. -i /nix/store/gx4i3qg3rq112igqb4vnv629ci7kyd72-llvm-7.1.0.drv
     nix-env -I. --set-flag priority 10 llvm_7
     nix-instantiate -I. -E '(import <nixpkgs> {}).clang7'
-    nix-env -I. =i /nix/store/snwyxm9pmnjk1b4m3yjlbzmjrqg1azph-clang-wrapper-7.1.0.drv
+    nix-env -I. =i /nix/store/plh8xpy580gd117jpi4pnmv0dl2qdbh4-clang-wrapper-7.1.0.drv
     nix-env -I. --set-flag priority 20 clang_7
     nix-instantiate -I. -E '(import <nixpkgs> {}).python3'
-    nix-env -I. -i /nix/store/apdpi8fdnc1scz35w4i6qw5qhzcv31kl-python3-3.8.6.drv
+    nix-env -I. -i /nix/store/iwf5i1f72inw05in0vr9bbp1a7hwmxh5-python3-3.7.6.drv
     nix-instantiate -I. -E '(import <nixpkgs> {}).doxygen'
-    nix-env -I. -i /nix/store/8iyvj6x357m8knivlqcq9pvyzzcvc2yx-doxygen-1.8.19.drv
+    nix-env -I. -i /nix/store/gbhhc8mxvw8hxx2k8r73jj5brbi7hk62-doxygen-1.8.17.drv
     nix-instantiate -I. -E '(import <nixpkgs> {}).dpkg'
-    nix-env -I. -i  /nix/store/ahncn251jc2zwzn2cp8yqkak190yaif8-dpkg-1.20.5.drv
+    nix-env -I. -i /nix/store/dfdvxn42glnb9xgy8yrkd70gjnvhx6y0-dpkg-1.19.7.drv
 
 # for debug only
 nix-env -I. -i /nix/store/z976i71y86b771hz14k62j5x8cifnppf-vim-8.2.1522.drv

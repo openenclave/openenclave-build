@@ -1,7 +1,7 @@
 # Copyright (c) Open Enclave SDK contributors.
 # Licensed under the MIT License.
 # 
-ARG BASE_IMAGE="ubuntu:20.04"
+ARG BASE_IMAGE="ubuntu@sha256:fff16eea1a8ae92867721d90c59a75652ea66d29c05294e6e2f898704bdb8cf1"
 FROM $BASE_IMAGE
 
 #
@@ -34,7 +34,6 @@ ARG BUILD_USER_HOME=/home/azureuser
 
 # This will exclude oegdb, samples, and report 
 ARG TEST_EXCLUSIONS="-E samples\|oegdb-test\|report"
-ARG DO_CHECK="false"
 
 #add a user for Nix
 RUN echo "adduser $BUILD_USER --uid $BUILD_USER_ID --home $BUILD_USER_HOME"
@@ -53,7 +52,7 @@ RUN echo "{ pkgs ? import <nixpkgs> {} \n\
     ,  DO_CHECK  ? false \n\
     ,  OE_SIM ? \"\"  \n\
     ,  INTERACTIVE_SHELL ? false\n\
-    ,  DEB_PACKAGE ? false\n\
+    ,  DEB_PACKAGE ? true\n\
     }:   \n\
 \n\
 with pkgs; \n\
@@ -84,7 +83,7 @@ with pkgs; \n\
         CXXFLAGS=\"-Wno-unused-command-line-argument\";\n\
         NIX_ENFORCE_PURITY=0; \n\
         NIX_ENFORCE_NO_NATIVE=0; \n\
-        doCheck = false; \n\
+        doCheck = false; /* We do the test phase in nix-shell */ \n\
         dontStrip = true;\n\
         dontPatchELF = true;\n\
         doFixup = false;\n\
@@ -100,14 +99,12 @@ with pkgs; \n\
                 make VERBOSE=1 -j 4 \n\
             ''; \n\
         checkPhase = '' \n\
-                echo \"ctest -E samples\|oegdb-test\|report\" \n\
-                find ./tests -type d -exec chmod a+w {} \;\n\
-                LD_LIBRARY_PATH=/home/azureuser/.nix_libs \$OE_SIM ctest -E samples\|oegdb-test\|report \n\
+                /* We must include something in the check phase or it will default */ \n\
+                echo \"ctest performed in nix-shell \" \n\
             ''; \n\
 \n\
         installPhase = '' \n\
-                rm -rf /output/build\n\
-                cp -rf \$out/* /output/build \n\
+                echo \"install phase skipped \" \n\
             ''; \n\
 \n\
         fixupPhase = '' \n\
@@ -125,7 +122,7 @@ with pkgs; \n\
 \n\
                     LD_LIBRARY_PATH=/home/azureuser/.nix_libs \$OE_SIM ctest -E samples\|oegdb-test\|report \n\
                     CTEST_RESULT=\$?\n\
-                    if \$CTEST_RESULT\n\
+                    if [ \$CTEST_RESULT -ne 0]\n\
                     then\n\
                         echo \"ERROR: Ctests failed\"\n\
                         exit \$CTEST_RESULT\n\
@@ -145,9 +142,11 @@ with pkgs; \n\
                 find \$out -type f -executable -exec patchelf --set-interpreter \$LD_INTERPRETER {} \;\n\
                 find \$out -type f -executable -exec patchelf --remove-rpath {} \;\n\
 \n\
-                if \$DEB_PACKAGE\n\
+                if [ \$DEB_PACKAGE -ne 'false' ] \n\
                 then\n\
                     /home/azureuser/build_deb_pkg.sh\n\
+                else \n\
+                    echo "skipping package build" \n\
                 fi\n\
                 if \$INTERACTIVE_SHELL\n\
                 then\n\

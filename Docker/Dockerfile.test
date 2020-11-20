@@ -1,7 +1,7 @@
 # Copyright (c) Open Enclave SDK contributors.
 # Licensed under the MIT License.
 # 
-ARG BASE_IMAGE="ubuntu@sha256:646942475da61b4ce9cc5b3fadb42642ea90e5d0de46111458e100ff2c7031e6"
+ARG BASE_IMAGE="ubuntu@sha256:fff16eea1a8ae92867721d90c59a75652ea66d29c05294e6e2f898704bdb8cf1"
 FROM $BASE_IMAGE
 
 #
